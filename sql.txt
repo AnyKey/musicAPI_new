@@ -10,6 +10,7 @@
 5) Составление "чарта" (данные из бд) исходя из кол-ва слушателей (listeners)
  и кол-ва воспроизведений (playcount) (чарт сортируется исходя из передаваемого условия)
 
+- sudo docker run --name some-postgres -e POSTGRES_PASSWORD=123 -e POSTGRES_DB=musicdb -d -p 5432:5432 postgres:9.6.21-alpine
 sql:
 CREATE TABLE tracklist (
     id        SERIAL NOT NULL  PRIMARY KEY,
@@ -19,14 +20,7 @@ CREATE TABLE tracklist (
     );
 
 
-CREATE TABLE track (
-    name varchar(80) NOT NULL PRIMARY KEY,
-    artist_id INTEGER NOT NULL REFERENCES artist(id) ON UPDATE CASCADE,
-    album_id INTEGER NOT NULL REFERENCES album(id) ON UPDATE CASCADE,
-    listeners INTEGER NOT NULL,
-    playcount INTEGER NOT NULL,
-    tag VARCHAR(45) NOT NULL REFERENCES tag(genre) ON UPDATE CASCADE
-    );
+
 CREATE TABLE artist (
     id        SERIAL NOT NULL PRIMARY KEY,
     name      VARCHAR(45) NOT NULL
@@ -37,4 +31,12 @@ CREATE TABLE album (
     );
 CREATE TABLE tag (
     genre      VARCHAR(60) NOT NULL UNIQUE PRIMARY KEY
+    );
+CREATE TABLE track (
+    name varchar(80) NOT NULL PRIMARY KEY,
+    artist_id INTEGER NOT NULL REFERENCES artist(id) ON UPDATE CASCADE,
+    album_id INTEGER NOT NULL REFERENCES album(id) ON UPDATE CASCADE,
+    listeners INTEGER NOT NULL,
+    playcount INTEGER NOT NULL,
+    tag VARCHAR(45) NOT NULL REFERENCES tag(genre) ON UPDATE CASCADE
     );
