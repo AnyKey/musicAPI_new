@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
 	"github.com/gorilla/mux"
 	"musicAPI/repository"
 	"net/http"
+	"time"
 )
 
 type GenreHandler struct {
@@ -13,15 +16,27 @@ type GenreHandler struct {
 func (gh GenreHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 	var err error
+	var ctx = context.Background()
 	vars := mux.Vars(req)
-	Genre, err := gh.Repo.GetGenreTracks(vars["genre"])
-	if Genre != nil && err == nil {
-		_ = WriteJsonToResponse(writer, Genre)
-	} else if Genre == nil && err == nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		_ = WriteJsonToResponse(writer, err.Error())
-	} else {
-		writer.WriteHeader(http.StatusInternalServerError)
-		_ = WriteJsonToResponse(writer, err.Error())
+	Genre := gh.Repo.GetGenreRedis(vars["genre"])
+	if Genre != nil {
+		err = WriteJsonToResponse(writer, Genre)
 	}
+	if Genre == nil {
+		Genre, err = gh.Repo.GetGenreTracks(vars["genre"])
+		if Genre != nil && err == nil {
+			bytes, err := json.Marshal(Genre)
+			if err == nil {
+				gh.Repo.Redis.Set(ctx, "Genre:"+vars["genre"], bytes, 5*time.Minute)
+			}
+			err = WriteJsonToResponse(writer, Genre)
+		} else if Genre == nil && err == nil {
+			writer.WriteHeader(http.StatusBadRequest)
+			_ = WriteJsonToResponse(writer, err.Error())
+		} else {
+			writer.WriteHeader(http.StatusInternalServerError)
+			_ = WriteJsonToResponse(writer, err.Error())
+		}
+	}
+
 }

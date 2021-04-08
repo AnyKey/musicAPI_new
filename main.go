@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/joho/godotenv/autoload"
@@ -12,6 +13,23 @@ import (
 	"net/http"
 	"time"
 )
+
+type config struct {
+	Database    string `envconfig:"DATABASE"`
+	HttpAddress string `envconfig:"HTTP_ADDRESS"`
+	RedisPort   string `envconfig:"REDIS_PORT"`
+}
+
+func MustDBConn(database string) *sql.DB {
+	db, err := sql.Open("postgres", database)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if db.Ping() != nil {
+		log.Fatalln(err)
+	}
+	return db
+}
 
 func main() {
 	var sconfig config
@@ -32,6 +50,7 @@ func main() {
 	router.Handle("/api/genre/{genre}", handlers.GenreHandler{Repo: repo}).Methods(http.MethodGet)          //3
 	router.Handle("/api/artist/{artist}", handlers.ArtistHandler{Repo: repo}).Methods(http.MethodGet)       //4
 	router.Handle("/api/chart/{sortto}", handlers.ChartHandler{Repo: repo}).Methods(http.MethodGet)         //5
+	router.Handle("/api/login/{name}", handlers.LoginHandler{Repo: repo}).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      router,
