@@ -13,7 +13,6 @@ func WriteJsonToResponse(rw http.ResponseWriter, value interface{}) error {
 		return errors.Wrap(err, "error while marshal json")
 	}
 
-	rw.WriteHeader(200)
 	_, err = rw.Write(bytes)
 	if err != nil {
 		return errors.Wrap(err, "error write response")

@@ -12,15 +12,16 @@ type GenreHandler struct {
 
 func (gh GenreHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
-	//writer.Header().Set("Access-Control-Allow-Origin", "*")
 	var err error
 	vars := mux.Vars(req)
 	Genre, err := gh.Repo.GetGenreTracks(vars["genre"])
-	if Genre != nil {
+	if Genre != nil && err == nil {
 		_ = WriteJsonToResponse(writer, Genre)
-	} else {
+	} else if Genre == nil && err == nil {
 		writer.WriteHeader(http.StatusBadRequest)
 		_ = WriteJsonToResponse(writer, err.Error())
-
+	} else {
+		writer.WriteHeader(http.StatusInternalServerError)
+		_ = WriteJsonToResponse(writer, err.Error())
 	}
 }

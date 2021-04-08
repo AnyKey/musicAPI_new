@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"musicAPI/api"
+	"musicAPI/model"
 	"musicAPI/repository"
 	"net/http"
 )
@@ -18,7 +19,7 @@ func (th TrackHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) 
 
 	defer func() {
 		if err != nil {
-			writer.WriteHeader(http.StatusBadRequest)
+			writer.WriteHeader(http.StatusInternalServerError)
 			err = WriteJsonToResponse(writer, err.Error())
 			if err != nil {
 				fmt.Println(writer, err.Error())
@@ -45,6 +46,11 @@ func (th TrackHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) 
 				fmt.Println(writer, err.Error())
 			}
 		}()
-		err = WriteJsonToResponse(writer, re)
+		result := structConv(re)
+		err = WriteJsonToResponse(writer, result)
 	}
+}
+
+func structConv(trackList *model.OwnTrack) model.TrackSelect {
+	return model.TrackSelect{trackList.Name, trackList.Album.Artist, trackList.Album.Album}
 }

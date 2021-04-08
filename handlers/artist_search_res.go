@@ -29,7 +29,7 @@ func (ah ArtistHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request)
 	if tracks != nil {
 		err = WriteJsonToResponse(writer, tracks)
 	} else if tracks == nil && err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
+		writer.WriteHeader(http.StatusInternalServerError)
 		err = WriteJsonToResponse(writer, err.Error())
 
 	}

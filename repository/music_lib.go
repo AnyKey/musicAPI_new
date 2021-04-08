@@ -3,18 +3,27 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"log"
 	"musicAPI/model"
+	"time"
 )
 
 type Repository struct {
-	Conn *sql.DB
+	Conn  *sql.DB
+	Redis *redis.Client
 }
 
 func (repo Repository) GetTracks(track string, artist string) ([]model.TrackSelect, error) {
+	var ctx = context.Background()
+	result := repo.GetTracksRedis(track, artist)
+	if result != nil {
+		return result, nil
+	}
 	var trackList []model.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album  FROM track, artist, album "+
 		"WHERE track.artist_id = artist.id and track.album_id = album.id and track.name = $1 AND artist.name = $2", track, artist)
@@ -30,6 +39,10 @@ func (repo Repository) GetTracks(track string, artist string) ([]model.TrackSele
 			return nil, errors.Wrap(err, "error Scan values")
 		}
 		trackList = append(trackList, tl)
+	}
+	bytes, err := json.Marshal(trackList)
+	if err == nil {
+		repo.Redis.Set(ctx, "Track:"+track+"_Artist:"+artist, bytes, 5*time.Minute)
 	}
 	return trackList, nil
 }
@@ -127,10 +140,17 @@ func (repo Repository) SetTracks(NewTracks model.OwnTrack) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	return nil
 }
 
 func (repo Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error) {
+
+	var ctx = context.Background()
+	result := repo.GetGenreRedis(genre)
+	if result != nil {
+		return result, nil
+	}
 	var trackList []model.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album "+
 		"FROM track, artist, album "+
@@ -148,11 +168,21 @@ func (repo Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error)
 		}
 		trackList = append(trackList, tl)
 	}
+	bytes, err := json.Marshal(trackList)
+	if err == nil {
+		repo.Redis.Set(ctx, "Genre:"+genre, bytes, 5*time.Minute)
+	}
+
 	return trackList, nil
-	return nil, nil
 }
 
 func (repo Repository) GetArtistTracks(artist string) ([]model.TrackSelect, error) {
+
+	var ctx = context.Background()
+	result := repo.GetArtistRedis(artist)
+	if result != nil {
+		return result, nil
+	}
 	var trackList []model.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album  FROM track, artist, album "+
 		"WHERE track.artist_id = artist.id and track.album_id = album.id and artist.name = $1", artist)
@@ -164,7 +194,6 @@ func (repo Repository) GetArtistTracks(artist string) ([]model.TrackSelect, erro
 	defer rows.Close()
 
 	for rows.Next() {
-		log.Println("12312312")
 		tl := model.TrackSelect{}
 		err := rows.Scan(&tl.Name, &tl.Artist, &tl.Album)
 		if err != nil {
@@ -172,10 +201,21 @@ func (repo Repository) GetArtistTracks(artist string) ([]model.TrackSelect, erro
 		}
 		trackList = append(trackList, tl)
 	}
+
+	bytes, err := json.Marshal(trackList)
+	if err == nil {
+		repo.Redis.Set(ctx, "Artist:"+artist, bytes, 5*time.Minute)
+	}
 	return trackList, nil
 }
 
 func (repo Repository) GetChart(sortTo string) ([]model.ChartSelect, error) {
+
+	var ctx = context.Background()
+	result := repo.GetChartRedis(sortTo)
+	if result != nil {
+		return result, nil
+	}
 	var trackList []model.ChartSelect
 	var querySql string
 	if sortTo == "list" {
@@ -204,6 +244,10 @@ func (repo Repository) GetChart(sortTo string) ([]model.ChartSelect, error) {
 			return nil, errors.Wrap(err, "error Scan values")
 		}
 		trackList = append(trackList, tl)
+	}
+	bytes, err := json.Marshal(trackList)
+	if err == nil {
+		repo.Redis.Set(ctx, "SortTo:"+sortTo, bytes, 5*time.Minute)
 	}
 	return trackList, nil
 }

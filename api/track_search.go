@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -17,7 +16,7 @@ func TrackSearchReq(track string, artist string) (*model.OwnTrack, error) {
 		Timeout: 5 * time.Second,
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL, nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error create new request")
 	}

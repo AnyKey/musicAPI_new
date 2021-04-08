@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
@@ -13,34 +13,22 @@ import (
 	"time"
 )
 
-type config struct {
-	Database    string `envconfig:"DATABASE"`
-	HttpAddress string `envconfig:"HTTP_ADDRESS"`
-}
-
-func MustDBConn(database string) *sql.DB {
-	db, err := sql.Open("postgres", database)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if db.Ping() != nil {
-		log.Fatalln(err)
-	}
-	return db
-}
-
 func main() {
 	var sconfig config
 	err := envconfig.Init(&sconfig)
 	if err != nil {
 		panic(err)
 	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr: sconfig.RedisPort,
+	})
 	conn := MustDBConn(sconfig.Database)
-	repo := repository.Repository{Conn: conn}
+	repo := repository.Repository{Conn: conn, Redis: rdb}
 
 	router := mux.NewRouter()
 	router.Handle("/api/track/{artist}/{track}", handlers.TrackHandler{Repo: repo}).Methods(http.MethodGet) //1
-	router.HandleFunc("/api/album/{artist}/{album}", handlers.AlbumInfoRes).Methods(http.MethodGet)         //2
+	router.Handle("/api/album/{artist}/{album}", handlers.AlbumHandler{Repo: repo}).Methods(http.MethodGet) //2
 	router.Handle("/api/genre/{genre}", handlers.GenreHandler{Repo: repo}).Methods(http.MethodGet)          //3
 	router.Handle("/api/artist/{artist}", handlers.ArtistHandler{Repo: repo}).Methods(http.MethodGet)       //4
 	router.Handle("/api/chart/{sortto}", handlers.ChartHandler{Repo: repo}).Methods(http.MethodGet)         //5

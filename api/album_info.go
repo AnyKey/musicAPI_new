@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/pkg/errors"
@@ -23,7 +22,7 @@ func AlbumInfoReq(album string, artist string) (*model.Root, error) {
 		Timeout: 10 * time.Second,
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, baseURL, nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error create new request")
 	}

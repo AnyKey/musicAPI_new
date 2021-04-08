@@ -6,10 +6,10 @@ type TrackSelect struct {
 	Album  string `db:"album" json:"album"`
 }
 type ChartSelect struct {
-	Track     string
-	Artist    string
-	Album     string
-	Listeners int
-	Playcount int
-	Genre     string
+	Track     string `json:"track"`
+	Artist    string `json:"artist"`
+	Album     string `json:"album"`
+	Listeners int    `json:"listeners"`
+	Playcount int    `json:"playcount"`
+	Genre     string `json:"genre"`
 }
