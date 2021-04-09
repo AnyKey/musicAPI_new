@@ -95,3 +95,21 @@ func (repo Repository) GetAlbumRedis(album string, artist string) *model.Root {
 	}
 	return trackList
 }
+func (repo Repository) GetToken(user string) *model.Tokens {
+	var ctx = context.Background()
+	var tokens model.Tokens
+	res := repo.Redis.Get(ctx, "JWT:"+user)
+	if res.Err() != nil {
+		return nil
+	}
+	bytes, err := res.Bytes()
+	if err != nil {
+		return nil
+	}
+	err = json.Unmarshal(bytes, &tokens)
+	if err != nil {
+		return nil
+	}
+	return &tokens
+
+}

@@ -45,12 +45,14 @@ func main() {
 	repo := repository.Repository{Conn: conn, Redis: rdb}
 
 	router := mux.NewRouter()
+	router.Use(handlers.TokenHandler{Repo: repo}.AuthUser)
 	router.Handle("/api/track/{artist}/{track}", handlers.TrackHandler{Repo: repo}).Methods(http.MethodGet) //1
 	router.Handle("/api/album/{artist}/{album}", handlers.AlbumHandler{Repo: repo}).Methods(http.MethodGet) //2
 	router.Handle("/api/genre/{genre}", handlers.GenreHandler{Repo: repo}).Methods(http.MethodGet)          //3
 	router.Handle("/api/artist/{artist}", handlers.ArtistHandler{Repo: repo}).Methods(http.MethodGet)       //4
 	router.Handle("/api/chart/{sortto}", handlers.ChartHandler{Repo: repo}).Methods(http.MethodGet)         //5
 	router.Handle("/api/login/{name}", handlers.LoginHandler{Repo: repo}).Methods(http.MethodGet)
+	router.Handle("/api/refresh/", handlers.RefreshHandler{Repo: repo}).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      router,
