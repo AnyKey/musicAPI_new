@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/mux"
 	"musicAPI/repository"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -15,18 +16,14 @@ type TokenHandler struct {
 
 func (th TokenHandler) AuthUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		if r.RequestURI == "/api/login/"+vars["name"] {
+		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") {
 			next.ServeHTTP(w, r)
 			return
 		}
-		if r.RequestURI == "/api/refresh/" {
-			next.ServeHTTP(w, r)
-			return
-		}
+
 		token := r.Header.Get("token")
 		if token != "" {
-			sd := CheckToken(th, token)
+			sd := th.CheckToken(r.Context(), token)
 			if sd == true {
 				next.ServeHTTP(w, r)
 				return
@@ -40,28 +37,29 @@ func (th TokenHandler) AuthUser(next http.Handler) http.Handler {
 }
 
 func NewTokenA(user string) (*jwt.Token, error) {
-	token := jwt.New(jwt.GetSigningMethod("HS256"))
-	claims := token.Claims.(jwt.MapClaims)
-	claims["name"] = user
-	claims["root"] = true
-	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
-
-	return token, nil
+	return jwt.NewWithClaims(
+		jwt.GetSigningMethod("HS256"),
+		jwt.MapClaims{
+			"name": user,
+			"exp": time.Now().Add(time.Hour * 1).Unix(),
+			"root": true,
+		}), nil
 }
 func NewTokenR(user string) (*jwt.Token, error) {
-	token := jwt.New(jwt.GetSigningMethod("HS256"))
-	claims := token.Claims.(jwt.MapClaims)
-	claims["name"] = user
-	claims["exp"] = time.Now().Add(time.Hour * 1).Unix()
-
-	return token, nil
+	return jwt.NewWithClaims(
+		jwt.GetSigningMethod("HS256"),
+		jwt.MapClaims{
+			"name": user,
+			"exp": time.Now().Add(time.Hour * 1).Unix(),
+		}), nil
 }
 
-func CheckToken(tt TokenHandler, myToken string) bool {
+func (th TokenHandler) CheckToken(ctx context.Context, myToken string) bool {
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(myToken, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte("key"), nil
 	})
+
 	if err == nil && token.Valid {
 		tokenMap := make(map[string]string)
 		for key, val := range claims {
@@ -70,7 +68,7 @@ func CheckToken(tt TokenHandler, myToken string) bool {
 		}
 
 		user := tokenMap["name"]
-		res := tt.Repo.GetToken(user)
+		res := th.Repo.GetTokens(ctx, user)
 		if res.Access == myToken && res.Valid == true {
 			return true
 		}

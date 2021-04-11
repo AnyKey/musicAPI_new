@@ -46,6 +46,7 @@ func main() {
 
 	router := mux.NewRouter()
 	router.Use(handlers.TokenHandler{Repo: repo}.AuthUser)
+
 	router.Handle("/api/track/{artist}/{track}", handlers.TrackHandler{Repo: repo}).Methods(http.MethodGet) //1
 	router.Handle("/api/album/{artist}/{album}", handlers.AlbumHandler{Repo: repo}).Methods(http.MethodGet) //2
 	router.Handle("/api/genre/{genre}", handlers.GenreHandler{Repo: repo}).Methods(http.MethodGet)          //3

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"musicAPI/model"
+	"time"
 )
 
 func (repo Repository) GetTracksRedis(track string, artist string) []model.TrackSelect {
@@ -95,8 +96,22 @@ func (repo Repository) GetAlbumRedis(album string, artist string) *model.Root {
 	}
 	return trackList
 }
-func (repo Repository) GetToken(user string) *model.Tokens {
-	var ctx = context.Background()
+
+func (repo Repository) SetTokens(ctx context.Context, user string, tokens model.Tokens) error {
+	bytes, err := json.Marshal(tokens)
+	if err != nil {
+		return err
+	}
+
+	res := repo.Redis.Set(ctx, "JWT:"+user, bytes, 1*time.Hour)
+	if res.Err() != nil {
+		return res.Err()
+	}
+
+	return nil
+}
+
+func (repo Repository) GetTokens(ctx context.Context, user string) *model.Tokens {
 	var tokens model.Tokens
 	res := repo.Redis.Get(ctx, "JWT:"+user)
 	if res.Err() != nil {

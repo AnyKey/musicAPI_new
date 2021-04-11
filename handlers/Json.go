@@ -8,7 +8,6 @@ import (
 
 func WriteJsonToResponse(rw http.ResponseWriter, value interface{}) error {
 	bytes, err := json.Marshal(value)
-
 	if err != nil {
 		return errors.Wrap(err, "error while marshal json")
 	}
@@ -17,5 +16,6 @@ func WriteJsonToResponse(rw http.ResponseWriter, value interface{}) error {
 	if err != nil {
 		return errors.Wrap(err, "error write response")
 	}
+
 	return nil
 }
