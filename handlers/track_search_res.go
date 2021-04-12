@@ -37,33 +37,33 @@ func (th TrackHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) 
 	tracks := th.Repo.GetTracksRedis(trackV, artistV)
 	if tracks != nil {
 		err = WriteJsonToResponse(writer, tracks)
+		return
 	}
-	if tracks == nil {
-		tracks, err = th.Repo.GetTracks(trackV, artistV)
-		if tracks != nil {
-			bytes, err := json.Marshal(tracks)
-			if err == nil {
-				th.Repo.Redis.Set(ctx, "Track:"+trackV+"_Artist:"+artistV, bytes, 5*time.Minute)
-			}
-			err = WriteJsonToResponse(writer, tracks)
 
-		} else if tracks == nil {
+	tracks, err = th.Repo.GetTracks(trackV, artistV)
+	if tracks != nil {
+		bytes, err := json.Marshal(tracks)
+		if err == nil {
+			th.Repo.Redis.Set(ctx, "Track:"+trackV+"_Artist:"+artistV, bytes, 5*time.Minute)
+		}
+		err = WriteJsonToResponse(writer, tracks)
 
-			re, err := api.TrackSearchReq(trackV, artistV)
+	} else if tracks == nil {
+
+		re, err := api.TrackSearchReq(trackV, artistV)
+		if err != nil {
+			fmt.Println(writer, err.Error())
+		}
+		go func() {
+			err = th.Repo.SetTracks(*re)
 			if err != nil {
 				fmt.Println(writer, err.Error())
 			}
-			go func() {
-				err = th.Repo.SetTracks(*re)
-				if err != nil {
-					fmt.Println(writer, err.Error())
-				}
-			}()
-			result := structConv(re)
-			err = WriteJsonToResponse(writer, result)
-		}
+		}()
+		result := structConv(re)
+		err = WriteJsonToResponse(writer, result)
 	}
-
+	return
 }
 
 func structConv(trackList *model.OwnTrack) model.TrackSelect {

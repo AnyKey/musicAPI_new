@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"log"
 	"musicAPI/repository"
 	"net/http"
 	"time"
@@ -32,24 +33,30 @@ func (ch ChartHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) 
 	chart := ch.Repo.GetChartRedis(sortTo)
 	if chart != nil {
 		err = WriteJsonToResponse(writer, chart)
-	}
-	if chart == nil {
-		chart, err = ch.Repo.GetChart(sortTo)
-		if chart != nil {
-			bytes, err := json.Marshal(chart)
-			if err == nil {
-				ch.Repo.Redis.Set(ctx, "SortTo:"+sortTo, bytes, 5*time.Minute)
-			}
-			err = WriteJsonToResponse(writer, chart)
-		} else if chart == nil && err == nil {
-			writer.WriteHeader(http.StatusNoContent)
-			err = WriteJsonToResponse(writer, errors.New("empty response"))
-			if err != nil {
-				return
-			}
-		} else {
-			writer.WriteHeader(http.StatusBadRequest)
+		if err != nil {
+			log.Println(err)
 		}
+		return
 	}
+	chart, err = ch.Repo.GetChart(sortTo)
+	if chart != nil {
+		bytes, err := json.Marshal(chart)
+		if err == nil {
+			ch.Repo.Redis.Set(ctx, "SortTo:"+sortTo, bytes, 5*time.Minute)
+		}
+		err = WriteJsonToResponse(writer, chart)
+		if err != nil {
+			log.Println(err)
+		}
+		return
+	} else if chart == nil && err == nil {
+		writer.WriteHeader(http.StatusNoContent)
+		err = WriteJsonToResponse(writer, errors.New("empty response"))
+		if err != nil {
+			log.Println(err)
+		}
+		return
+	}
+	writer.WriteHeader(http.StatusBadRequest)
 
 }

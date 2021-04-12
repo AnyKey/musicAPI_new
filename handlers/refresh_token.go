@@ -19,22 +19,19 @@ func (rh RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return []byte("key"), nil
 	})
 	if err != nil {
-		// TODO
+		log.Println(err)
 		return
 	}
-
 	if !token.Valid {
 		return
-		// TODO
+		w.Write([]byte("invalid token"))
 	}
-
 	user := claims["name"].(string)
 	res := rh.Repo.GetTokens(r.Context(), user)
 
-	log.Println("res:", res.Refresh, "\n", rToken)
 	if res.Refresh != rToken {
 		return
-		// TODO
+		w.Write([]byte("invalid refresh token"))
 	}
 	tokenA, err := NewTokenA(user)
 	if err != nil {
@@ -54,15 +51,18 @@ func (rh RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Valid:   true,
 	}
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	err = rh.Repo.SetTokens(r.Context(), user, newToken)
 	if err != nil {
 		log.Println(err)
-		// TODO
 		return
 	}
 
 	err = WriteJsonToResponse(w, newToken)
+	if err != nil {
+		log.Println(err)
+	}
 	return
 }

@@ -12,14 +12,6 @@
 
 - sudo docker run --name some-postgres -e POSTGRES_PASSWORD=123 -e POSTGRES_DB=musicdb -d -p 5432:5432 postgres:9.6.21-alpine
 sql:
-CREATE TABLE tracklist (
-    id        SERIAL NOT NULL  PRIMARY KEY,
-    name      varchar(99) NOT NULL,
-    artist    varchar(40) NOT NULL,
-    listeners integer NOT NULL
-    );
-
-
 
 CREATE TABLE artist (
     id        SERIAL NOT NULL PRIMARY KEY,
@@ -40,3 +32,7 @@ CREATE TABLE track (
     playcount INTEGER NOT NULL,
     tag VARCHAR(45) NOT NULL REFERENCES tag(genre) ON UPDATE CASCADE
     );
+
+
+1.Genre, err
+2.Tracks, panic in repo (insert into)

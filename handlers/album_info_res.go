@@ -27,20 +27,21 @@ func (ah AlbumHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) 
 		if err != nil {
 			log.Println(err.Error())
 		}
+		return
 	}
-	if result == nil {
-		re, err := api.AlbumInfoReq(album, artist)
-		bytes, err := json.Marshal(re)
-		if err == nil {
-			ah.Repo.Redis.Set(ctx, "Album:"+album+"_Artist:"+artist, bytes, 5*time.Minute)
-		}
-		err = WriteJsonToResponse(writer, re)
+
+	re, err := api.AlbumInfoReq(album, artist)
+	bytes, err := json.Marshal(re)
+	if err == nil {
+		ah.Repo.Redis.Set(ctx, "Album:"+album+"_Artist:"+artist, bytes, 5*time.Minute)
+	}
+	err = WriteJsonToResponse(writer, re)
+	if err != nil {
+		writer.WriteHeader(http.StatusBadRequest)
+		err = WriteJsonToResponse(writer, err.Error())
 		if err != nil {
-			writer.WriteHeader(http.StatusBadRequest)
-			err = WriteJsonToResponse(writer, err.Error())
-			if err != nil {
-				log.Println(err.Error())
-			}
+			log.Println(err.Error())
 		}
 	}
+
 }

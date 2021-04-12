@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"log"
 	"musicAPI/repository"
 	"net/http"
 	"time"
@@ -32,20 +33,29 @@ func (ah ArtistHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request)
 	tracks := ah.Repo.GetArtistRedis(artistV)
 	if tracks != nil {
 		err = WriteJsonToResponse(writer, tracks)
-	}
-	if tracks == nil {
-		tracks, err = ah.Repo.GetArtistTracks(artistV)
-		if tracks != nil {
-			bytes, err := json.Marshal(tracks)
-			if err == nil {
-				ah.Repo.Redis.Set(ctx, "Artist:"+artistV, bytes, 5*time.Minute)
-			}
-			err = WriteJsonToResponse(writer, tracks)
-		} else if tracks == nil && err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			err = WriteJsonToResponse(writer, err.Error())
+		if err != nil {
+			log.Println(err)
 		}
+		return
+	}
 
+	tracks, err = ah.Repo.GetArtistTracks(artistV)
+	if tracks != nil {
+		bytes, err := json.Marshal(tracks)
+		if err != nil {
+			log.Println(err)
+		}
+		if err == nil {
+			ah.Repo.Redis.Set(ctx, "Artist:"+artistV, bytes, 5*time.Minute)
+		}
+		err = WriteJsonToResponse(writer, tracks)
+		if err != nil {
+			log.Println(err)
+		}
+		return
+	} else if tracks == nil && err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		err = WriteJsonToResponse(writer, err.Error())
 	}
 
 }

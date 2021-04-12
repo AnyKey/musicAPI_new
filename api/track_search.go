@@ -45,6 +45,6 @@ func TrackSearchReq(track string, artist string) (*model.OwnTrack, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Error Unmarshal")
 	}
-	var ts model.OwnTrack = Tracks.Track
+	ts := Tracks.Track
 	return &ts, nil
 }

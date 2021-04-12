@@ -42,7 +42,7 @@ func (repo Repository) SetTracks(NewTracks model.OwnTrack) error {
 	ctx := context.Background()
 	tx, err := repo.Conn.BeginTx(ctx, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	// defer commit rollback tnx
 	var lastinsertedid int
@@ -91,7 +91,10 @@ func (repo Repository) SetTracks(NewTracks model.OwnTrack) error {
 		err = tx.QueryRowContext(ctx, "INSERT INTO artist (name) VALUES ($1) returning id", NewTracks.Album.Artist).Scan(&lastinsertedid)
 		if err != nil {
 			fmt.Println("ARTIST", err.Error())
-			tx.Rollback()
+			err = tx.Rollback()
+			if err != nil {
+				log.Println(err)
+			}
 			return err
 		}
 		artistId = lastinsertedid
@@ -129,7 +132,7 @@ func (repo Repository) SetTracks(NewTracks model.OwnTrack) error {
 	}
 	err = tx.Commit()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	return nil
