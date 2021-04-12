@@ -71,7 +71,10 @@ func (repo Repository) SetTracks(NewTracks model.OwnTrack) error {
 		albumId = lastinsertedid
 	}
 	rows.Close()
-
+	if albumId == 0 {
+		tx.Rollback()
+		return errors.New("Empty album")
+	}
 	rows, err = tx.QueryContext(ctx, "SELECT id FROM artist WHERE name = $1", NewTracks.Album.Artist)
 	if err != nil {
 		return errors.Wrap(err, "error select in DB!")
@@ -100,6 +103,10 @@ func (repo Repository) SetTracks(NewTracks model.OwnTrack) error {
 		artistId = lastinsertedid
 	}
 	rows.Close()
+	if artistId == 0 {
+		tx.Rollback()
+		return errors.New("Empty artist")
+	}
 
 	rows, err = tx.QueryContext(ctx, "SELECT genre FROM tag WHERE genre = $1", NewTracks.TopTags.Genre[0].Tag)
 	if err != nil {
@@ -125,10 +132,10 @@ func (repo Repository) SetTracks(NewTracks model.OwnTrack) error {
 	rows.Close()
 
 	_, err = tx.ExecContext(ctx, "INSERT INTO track (name, artist_id, album_id, listeners, playcount, tag) VALUES ($1, $2, $3, $4, $5, $6)", NewTracks.Name, artistId, albumId, NewTracks.Listeners, NewTracks.Playcount, NewTracks.TopTags.Genre[0].Tag)
-	if err != nil {
+	if err != nil && err == sql.ErrNoRows {
 		fmt.Println("TRACK!", err.Error())
 		tx.Rollback()
-		return err
+		return nil
 	}
 	err = tx.Commit()
 	if err != nil {
