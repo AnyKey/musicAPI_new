@@ -34,5 +34,5 @@ CREATE TABLE track (
     );
 
 
-1.Genre, err
+
 2.Tracks, panic in repo (insert into)

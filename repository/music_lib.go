@@ -157,6 +157,9 @@ func (repo Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error)
 		}
 		trackList = append(trackList, tl)
 	}
+	if err != nil || trackList == nil {
+		return nil, errors.New("empty values")
+	}
 
 	return trackList, nil
 }
