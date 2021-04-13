@@ -16,6 +16,8 @@ type TrackHandler struct {
 	Repo repository.Repository
 }
 
+var Value bool
+
 func (th TrackHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) {
 
 	var err error
@@ -24,10 +26,15 @@ func (th TrackHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) 
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			err = WriteJsonToResponse(writer, err.Error())
+		}
+		if Value == false {
+			writer.WriteHeader(http.StatusBadRequest)
+			err = WriteJsonToResponse(writer, "Bad request")
 			if err != nil {
 				fmt.Println(writer, err.Error())
 			}
 		}
+
 	}()
 	vars := mux.Vars(req)
 
@@ -37,32 +44,33 @@ func (th TrackHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) 
 	tracks := th.Repo.GetTracksRedis(trackV, artistV)
 	if tracks != nil {
 		err = WriteJsonToResponse(writer, tracks)
+		Value = true
 		return
 	}
 
 	tracks, err = th.Repo.GetTracks(trackV, artistV)
-	if tracks != nil {
-		bytes, err := json.Marshal(tracks)
-		if err == nil {
-			th.Repo.Redis.Set(ctx, "Track:"+trackV+"_Artist:"+artistV, bytes, 5*time.Minute)
-		}
-		err = WriteJsonToResponse(writer, tracks)
+	bytes, err := json.Marshal(tracks)
+	if err == nil && tracks != nil {
+		th.Repo.Redis.Set(ctx, "Track:"+trackV+"_Artist:"+artistV, bytes, 5*time.Minute)
+	}
 
-	} else if tracks == nil {
-
-		re, err := api.TrackSearchReq(trackV, artistV)
+	re, err := api.TrackSearchReq(trackV, artistV)
+	if err != nil {
+		fmt.Println(writer, err.Error())
+	}
+	if tracks == nil || tracks[0].Album == "" || tracks[0].Name == "" || tracks[0].Artist == "" {
+		Value = false
+		return
+	}
+	go func() {
+		err = th.Repo.SetTracks(*re)
 		if err != nil {
 			fmt.Println(writer, err.Error())
 		}
-		go func() {
-			err = th.Repo.SetTracks(*re)
-			if err != nil {
-				fmt.Println(writer, err.Error())
-			}
-		}()
-		result := structConv(re)
-		err = WriteJsonToResponse(writer, result)
-	}
+	}()
+	result := structConv(re)
+	err = WriteJsonToResponse(writer, result)
+	Value = true
 	return
 }
 
