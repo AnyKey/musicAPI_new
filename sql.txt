@@ -10,7 +10,9 @@
 5) Составление "чарта" (данные из бд) исходя из кол-ва слушателей (listeners)
  и кол-ва воспроизведений (playcount) (чарт сортируется исходя из передаваемого условия)
 
+docker:
 - sudo docker run --name some-postgres -e POSTGRES_PASSWORD=123 -e POSTGRES_DB=musicdb -d -p 5432:5432 postgres:9.6.21-alpine
+
 sql:
 
 CREATE TABLE artist (
@@ -32,7 +34,3 @@ CREATE TABLE track (
     playcount INTEGER NOT NULL,
     tag VARCHAR(45) NOT NULL REFERENCES tag(genre) ON UPDATE CASCADE
     );
-
-
-
-2.Tracks, panic in repo (insert into)

@@ -24,7 +24,7 @@ func (rh RefreshHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if !token.Valid {
 		return
-		w.Write([]byte("invalid token"))
+		w.Write([]byte(" invalid token"))
 	}
 	user := claims["name"].(string)
 	res := rh.Repo.GetTokens(r.Context(), user)

@@ -55,7 +55,7 @@ func NewTokenR(user string) (*jwt.Token, error) {
 		jwt.GetSigningMethod("HS256"),
 		jwt.MapClaims{
 			"name": user,
-			"exp":  time.Now().Add(time.Hour * 1).Unix(),
+			"exp":  time.Now().Add(time.Hour * 3).Unix(),
 		}), nil
 }
 
