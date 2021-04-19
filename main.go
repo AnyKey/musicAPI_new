@@ -52,6 +52,7 @@ func main() {
 	router.Handle("/api/chart/{sortto}", handlers.ChartHandler{Repo: repo}).Methods(http.MethodGet)         //5
 	router.Handle("/api/login/{name}", handlers.LoginHandler{Repo: repo}).Methods(http.MethodGet)
 	router.Handle("/api/refresh", handlers.RefreshHandler{Repo: repo}).Methods(http.MethodGet)
+	//router.HandleFunc("/api/elastic", handlers.ElasticHandler()).Methods(http.MethodPost)
 
 	srv := &http.Server{
 		Handler:      router,
