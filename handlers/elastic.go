@@ -46,7 +46,7 @@ func ElasticAdd(tracks []model.TrackSelect) error {
 	// Perform the request with the client.
 	res, err = req.Do(context.Background(), es)
 	if err != nil {
-		log.Fatalf("Error getting response: %s", err)
+		log.Println("Error getting response: ", err)
 	}
 	defer res.Body.Close()
 
@@ -75,19 +75,20 @@ func ElasticGet(tracks []model.TrackSelect) bool {
 	})
 	res, err := es.Info()
 	if err != nil {
-		log.Fatalf("Error getting response: %s", err)
+		log.Println("Error getting response: ", err)
 	}
 	defer res.Body.Close()
 	var buf bytes.Buffer
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"match": map[string]interface{}{
-				"name": tracks[0].Name,
+			"term": map[string]interface{}{
+				//"name": tracks[0].Name,
+				"name": "Liber",
 			},
 		},
 	}
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		log.Fatalf("Error encoding query: %s", err)
+		log.Println("Error encoding query: ", err)
 	}
 
 	// Perform the search request.
@@ -98,21 +99,21 @@ func ElasticGet(tracks []model.TrackSelect) bool {
 		es.Search.WithTrackTotalHits(true),
 	)
 	if err != nil {
-		log.Fatalf("Error getting response: %s", err)
+		log.Println("Error getting response: ", err)
 	}
 	defer res.Body.Close()
 	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-		log.Fatalf("Error parsing the response body: %s", err)
+		log.Println("Error parsing the response body: ", err)
 	}
 	if r != nil {
 		var checkVal interface{}
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 			checkVal = hit.(map[string]interface{})["_source"]
-			log.Printf(" * %v", hit.(map[string]interface{})["_source"].(map[string]interface{})["artist"])
+			log.Println(hit.(map[string]interface{})["_source"])
 		}
 		if checkVal != nil {
 			return true
 		}
 	}
-	return false
+	return true
 }
