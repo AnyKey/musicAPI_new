@@ -38,7 +38,7 @@ func ElasticAdd(tracks []model.TrackSelect) error {
 
 	// Set up the request object.
 	req := esapi.IndexRequest{
-		Index:   "test",
+		Index:   "tracks",
 		Body:    strings.NewReader(string(bytes)),
 		Refresh: "true",
 	}
@@ -81,9 +81,8 @@ func ElasticGet(tracks []model.TrackSelect) bool {
 	var buf bytes.Buffer
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
-			"term": map[string]interface{}{
-				//"name": tracks[0].Name,
-				"name": "Liber",
+			"match": map[string]interface{}{
+				"name": tracks[0].Name,
 			},
 		},
 	}
@@ -94,12 +93,13 @@ func ElasticGet(tracks []model.TrackSelect) bool {
 	// Perform the search request.
 	res, err = es.Search(
 		es.Search.WithContext(context.Background()),
-		es.Search.WithIndex("test"),
+		es.Search.WithIndex("tracks"),
 		es.Search.WithBody(&buf),
 		es.Search.WithTrackTotalHits(true),
 	)
-	if err != nil {
+	if err != nil || res.StatusCode == 404 {
 		log.Println("Error getting response: ", err)
+		return false
 	}
 	defer res.Body.Close()
 	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
@@ -110,10 +110,11 @@ func ElasticGet(tracks []model.TrackSelect) bool {
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 			checkVal = hit.(map[string]interface{})["_source"]
 			log.Println(hit.(map[string]interface{})["_source"])
+			break
 		}
 		if checkVal != nil {
 			return true
 		}
 	}
-	return true
+	return false
 }

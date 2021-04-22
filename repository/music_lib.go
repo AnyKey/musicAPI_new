@@ -107,6 +107,10 @@ func (repo Repository) SetTracks(NewTracks model.OwnTrack) error {
 		tx.Rollback()
 		return errors.New("Empty artist")
 	}
+	checkTag := NewTracks.TopTags.Genre
+	if len(checkTag) == 0 {
+		return errors.New("Empty tags")
+	}
 
 	rows, err = tx.QueryContext(ctx, "SELECT genre FROM tag WHERE genre = $1", NewTracks.TopTags.Genre[0].Tag)
 	if err != nil {

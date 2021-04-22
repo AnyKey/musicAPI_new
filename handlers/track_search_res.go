@@ -67,9 +67,14 @@ func (th TrackHandler) ServeHTTP(writer http.ResponseWriter, req *http.Request) 
 	if err != nil {
 		fmt.Println(writer, err.Error())
 	}
-	if tracks == nil || tracks[0].Album == "" || tracks[0].Name == "" || tracks[0].Artist == "" {
+	if re == nil {
 		Value = false
 		return
+	}
+	if tracks != nil {
+		if tracks[0].Album == "" || tracks[0].Name == "" || tracks[0].Artist == "" {
+			Value = false
+		}
 	}
 	if re != nil {
 		go func() {
