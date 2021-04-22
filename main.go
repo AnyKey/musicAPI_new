@@ -44,18 +44,16 @@ func main() {
 
 	router := mux.NewRouter()
 	router.Use(handlers.TokenHandler{Repo: repo, Chann: ch}.AuthUser)
-	router.Handle("/api/track/{artist}/{track}", handlers.TrackHandler{Repo: repo}).Methods(http.MethodGet) //1
-	router.Handle("/api/album/{artist}/{album}", handlers.AlbumHandler{Repo: repo}).Methods(http.MethodGet) //2
-	router.Handle("/api/genre/{genre}", handlers.GenreHandler{Repo: repo}).Methods(http.MethodGet)          //3
-	router.Handle("/api/artist/{artist}", handlers.ArtistHandler{Repo: repo}).Methods(http.MethodGet)       //4
-	router.Handle("/api/chart/{sortto}", handlers.ChartHandler{Repo: repo}).Methods(http.MethodGet)         //5
-	router.Handle("/api/login/{name}", handlers.LoginHandler{Repo: repo}).Methods(http.MethodGet)
-	router.Handle("/api/refresh", handlers.RefreshHandler{Repo: repo}).Methods(http.MethodGet)
+	router.Use(mux.CORSMethodMiddleware(router))
+	router.Handle("/api/track/{artist}/{track}", handlers.TrackHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions) //1
+	router.Handle("/api/album/{artist}/{album}", handlers.AlbumHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions) //2
+	router.Handle("/api/genre/{genre}", handlers.GenreHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions)          //3
+	router.Handle("/api/artist/{artist}", handlers.ArtistHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions)       //4
+	router.Handle("/api/chart/{sortto}", handlers.ChartHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions)         //5
+	router.Handle("/api/login/{name}", handlers.LoginHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions)
+	router.Handle("/api/refresh", handlers.RefreshHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/api/elastic/{track}", handlers.ElasticHandler).Methods(http.MethodGet, http.MethodOptions)
-	router.HandleFunc("/index", handlers.ParseHtml).Methods(http.MethodGet)
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "handlers/template/elastic.js")
-	})
+	router.HandleFunc("/static/index", handlers.ParseHtml).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      router,

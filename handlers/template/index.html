@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.js"></script>
+    <title>main</title>
+</head>
+<body>
+<center>
+    <label>
+        <input id="name" type="text" placeholder="Название песни">
+    </label>
+    <label>
+        <input id="searchTrack" type="button" value="Поиск">
+    </label>
+    <br>
+    <br>
+    <br>
+    <table border="black" width="50%">
+        <thead>
+            <tr>
+            <th>Трек</th>
+            <th>Исполнитель</th>
+            <th>Альбом</th>
+            </tr>
+        </thead>
+        <tbody id="list">
+        </tbody>
+    </table>
+</center>
+</body>
+
+<script type="text/javascript">
+    $("#searchTrack").click(function () {
+        let track = $("#name").val();
+        var myHeaders = new Headers();
+        myHeaders.append("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTkxMDM1MDMsIm5hbWUiOiJUZXN0Iiwicm9vdCI6dHJ1ZX0.abjdSoBgS4HcgqCyuqAAPE6VIuxtDCkFL_93fhe5DJ0");
+        var requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+            redirect: 'follow'
+        };
+        fetch('http://localhost:8001/api/elastic/' + track, requestOptions)
+            .then(data => data.json())
+            .then(json => renderMessagesTop(json))
+    });
+
+    function renderMessagesTop(json) {
+        $("#list").empty();
+        $("#list").append(json.map(elem => {
+            let el = $("<tr>").append(`
+                    <td>${elem.name}</td>
+                    <td>${elem.artist}</td>
+                    <td>${elem.album}</td>
+            `);
+
+            return el;
+        }))
+    }
+
+</script>
+</html>

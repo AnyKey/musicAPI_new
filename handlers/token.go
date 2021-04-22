@@ -21,11 +21,15 @@ type TokenHandler struct {
 func (th TokenHandler) AuthUser(next http.Handler) http.Handler {
 	q := newQueue(th.Chann)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") || strings.HasPrefix(r.RequestURI, "/index") {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "token")
+		if r.Method == http.MethodOptions {
+			return
+		}
+		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") || strings.HasPrefix(r.RequestURI, "/static/index") {
 			next.ServeHTTP(w, r)
 			return
 		}
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 		token := r.Header.Get("token")
 		if token != "" {
 			sd := th.CheckToken(r.Context(), token, q, r)
