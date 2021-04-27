@@ -14,21 +14,43 @@ import (
 
 func ElasticHandler(w http.ResponseWriter, r *http.Request) {
 	track := mux.Vars(r)["track"]
+	elSelect := socketSend{
+		track,
+		boolConv(mux.Vars(r)["name"]),
+		boolConv(mux.Vars(r)["artist"]),
+		boolConv(mux.Vars(r)["album"]),
+	}
+	trackList, err := fullTextSearch(elSelect)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		WriteJsonToResponse(w, err.Error())
+		return
+	}
+	if trackList == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		WriteJsonToResponse(w, "Bad request")
+		return
+	}
 
+	WriteJsonToResponse(w, trackList)
+	return
+}
+
+func fullTextSearch(resData socketSend) ([]model.TrackSelect, error) {
 	var nameValue, artistValue, albumValue string
 
-	if boolConv(mux.Vars(r)["name"]) == true {
-		nameValue = "*" + strings.ToLower(track) + "*"
+	if resData.NameCheck == true {
+		nameValue = "*" + strings.ToLower(resData.Track) + "*"
 	} else {
 		nameValue = ""
 	}
-	if boolConv(mux.Vars(r)["artist"]) == true {
-		artistValue = "*" + strings.ToLower(track) + "*"
+	if resData.ArtistCheck == true {
+		artistValue = "*" + strings.ToLower(resData.Track) + "*"
 	} else {
 		artistValue = ""
 	}
-	if boolConv(mux.Vars(r)["album"]) == true {
-		albumValue = "*" + strings.ToLower(track) + "*"
+	if resData.AlbumCheck == true {
+		albumValue = "*" + strings.ToLower(resData.Track) + "*"
 	} else {
 		albumValue = ""
 	}
@@ -42,6 +64,7 @@ func ElasticHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := es.Info()
 	if err != nil {
 		log.Println("Error getting response: ", err)
+		return nil, err
 	}
 	defer res.Body.Close()
 	var buf bytes.Buffer
@@ -88,10 +111,12 @@ func ElasticHandler(w http.ResponseWriter, r *http.Request) {
 	)
 	if err != nil {
 		log.Println("Error getting response: ", err)
+		return nil, err
 	}
 	defer res.Body.Close()
 	if err := json.NewDecoder(res.Body).Decode(&q); err != nil {
 		log.Println("Error parsing the response body: ", err)
+		return nil, err
 	}
 	if q != nil {
 		i := 0
@@ -105,14 +130,9 @@ func ElasticHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			i++
 		}
-
+		return trackList, nil
 	}
-	//err, w = ParsePage(w, trackList)
-	//	if err != nil {
-	//		log.Println(err.Error())
-	//	}
-	WriteJsonToResponse(w, trackList)
-	return
+	return nil, nil
 }
 
 func boolConv(id string) bool {

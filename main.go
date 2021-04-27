@@ -44,6 +44,7 @@ func main() {
 
 	router := mux.NewRouter()
 	router.Use(handlers.TokenHandler{Repo: repo, Chann: ch}.AuthUser)
+	router.Use(handlers.TokenHandler{Repo: repo, Chann: ch}.WsHandler)
 	router.Use(mux.CORSMethodMiddleware(router))
 	router.Handle("/api/track/{artist}/{track}", handlers.TrackHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions) //1
 	router.Handle("/api/album/{artist}/{album}", handlers.AlbumHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions) //2
@@ -53,7 +54,8 @@ func main() {
 	router.Handle("/api/login/{name}", handlers.LoginHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions)
 	router.Handle("/api/refresh", handlers.RefreshHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/api/elastic/{name}/{artist}/{album}/{track}", handlers.ElasticHandler).Methods(http.MethodGet, http.MethodOptions)
-	router.HandleFunc("/static/index", handlers.ParseHtml).Methods(http.MethodGet)
+	router.HandleFunc("/index", handlers.ParseHtml).Methods(http.MethodGet)
+	router.HandleFunc("/ws", handlers.ParseHtml).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      router,

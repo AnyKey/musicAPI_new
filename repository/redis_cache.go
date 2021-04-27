@@ -103,7 +103,7 @@ func (repo Repository) SetTokens(ctx context.Context, user string, tokens model.
 		return err
 	}
 
-	res := repo.Redis.Set(ctx, "JWT:"+user, bytes, 3*time.Hour)
+	res := repo.Redis.Set(ctx, "JWT:"+user, bytes, 6*time.Hour)
 	if res.Err() != nil {
 		return res.Err()
 	}

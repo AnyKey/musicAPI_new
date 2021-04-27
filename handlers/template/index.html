@@ -27,6 +27,9 @@
 <label>
     <input id="searchTrack" type="button" value="Поиск">
 </label>
+<label>
+    <input id="socket" type="button" value="Socket con">
+</label>
 <br>
 <br>
 <table border="black" width="50%">
@@ -42,7 +45,46 @@
 </table>
 
 </body>
+<script type="text/javascript">
+    let url = "ws://localhost:8001/ws"
+    let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTk1MzA0OTQsIm5hbWUiOiJUZXN0Iiwicm9vdCI6dHJ1ZX0.A2ZTZnj0IBmwyda2sFUzghav2y_kKoYhFckqGKiFax0";
+    webSocket = new WebSocket(url);
+    webSocket.onopen = () => webSocket.send(token);
+    webSocket.onmessage = function (event) {
+        console.log(event.data)
+    }
+    $("#socket").click(function () {
+        let nameCheck, artistCheck, albumCheck
+        if (document.getElementById('name_id').checked) {
+            nameCheck = true
+        } else {
+            nameCheck = false
+        }
+        if (document.getElementById('artist_id').checked) {
+            artistCheck = true
+        } else {
+            artistCheck = false
+        }
+        if (document.getElementById('album_id').checked) {
+            albumCheck = true
+        } else {
+            albumCheck = false
+        }
+        let track = $("#name").val();
+        var msg = {
+            track: track,
+            nameCheck: nameCheck,
+            artistCheck: artistCheck,
+            albumCheck: albumCheck
+        };
+        webSocket.send(JSON.stringify(msg));
+        console.log(webSocket.bufferedAmount)
+        webSocket.onmessage = function (event) {
+                renderMessagesTop(JSON.parse(event.data))
+        }
+    });
 
+</script>
 <script type="text/javascript">
     $("#searchTrack").click(function () {
         let nameCheck, artistCheck, albumCheck
@@ -63,7 +105,7 @@
         }
         let track = $("#name").val();
         var myHeaders = new Headers();
-        myHeaders.append("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTkxODc3NTAsIm5hbWUiOiJUZXN0Iiwicm9vdCI6dHJ1ZX0.M3Y4AvAZDUP7ocVDf4qAPQzM6XRm9yP30c44RUMs9Wo");
+        myHeaders.append("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTk1MzA0OTQsIm5hbWUiOiJUZXN0Iiwicm9vdCI6dHJ1ZX0.A2ZTZnj0IBmwyda2sFUzghav2y_kKoYhFckqGKiFax0");
         var requestOptions = {
             method: 'GET',
             headers: myHeaders,

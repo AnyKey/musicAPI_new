@@ -26,7 +26,7 @@ func (th TokenHandler) AuthUser(next http.Handler) http.Handler {
 		if r.Method == http.MethodOptions {
 			return
 		}
-		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") || strings.HasPrefix(r.RequestURI, "/static/index") {
+		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") || strings.HasPrefix(r.RequestURI, "/index") || strings.HasPrefix(r.RequestURI, "/ws") {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -50,7 +50,7 @@ func NewTokenA(user string) (*jwt.Token, error) {
 		jwt.GetSigningMethod("HS256"),
 		jwt.MapClaims{
 			"name": user,
-			"exp":  time.Now().Add(time.Hour * 1).Unix(),
+			"exp":  time.Now().Add(time.Hour * 3).Unix(),
 			"root": true,
 		}), nil
 }
@@ -59,7 +59,7 @@ func NewTokenR(user string) (*jwt.Token, error) {
 		jwt.GetSigningMethod("HS256"),
 		jwt.MapClaims{
 			"name": user,
-			"exp":  time.Now().Add(time.Hour * 3).Unix(),
+			"exp":  time.Now().Add(time.Hour * 6).Unix(),
 		}), nil
 }
 
