@@ -5,26 +5,21 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 	"log"
-	"musicAPI/model"
-	"musicAPI/token"
+	"musicAPI/user"
 	"time"
 )
 
-type tokenUseCase struct { // tokenUsecase {}
-	TokenRepo token.TokenRepository
+type tokenUseCase struct {
+	TokenRepo user.Repository
 }
 
 /* func NewTokenUseCase(tokenRepo token.TokenRepository) *TokenUseCase {
 	return &TokenUseCase{TokenRepo: tokenRepo}
 } */
 
-func New(tokenRepo token.TokenRepository) token.UseCase {
+func New(tokenRepo user.Repository) user.UseCase {
 	return &tokenUseCase{TokenRepo: tokenRepo}
 }
-
-//	CheckToken(ctx context.Context, token string) bool
-//	NewToken(ctx context.Context, user string) (*model.Tokens, error)
-//	RefreshToken(ctx context.Context, token string) (*model.Tokens, error)
 
 func (t *tokenUseCase) CheckToken(ctx context.Context, myToken string) bool {
 	claims := jwt.MapClaims{}
@@ -42,13 +37,13 @@ func (t *tokenUseCase) CheckToken(ctx context.Context, myToken string) bool {
 	return false
 }
 
-func (t *tokenUseCase) NewToken(ctx context.Context, user string) (*model.Tokens, error) {
-	tokenA, err := newTokenA(user)
+func (t *tokenUseCase) NewToken(ctx context.Context, username string) (*user.Tokens, error) {
+	tokenA, err := newTokenA(username)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	tokenR, err := newTokenR(user)
+	tokenR, err := newTokenR(username)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -59,16 +54,16 @@ func (t *tokenUseCase) NewToken(ctx context.Context, user string) (*model.Tokens
 		log.Println(err)
 		return nil, err
 	}
-	newTokens := model.Tokens{
+	newTokens := user.Tokens{
 		Access:  access,
 		Refresh: refresh,
 		Valid:   true,
 	}
-	err = t.TokenRepo.SetToken(ctx, user, newTokens)
+	err = t.TokenRepo.SetToken(ctx, username, newTokens)
 	return &newTokens, nil
 }
 
-func (t *tokenUseCase) RefreshToken(ctx context.Context, rToken string) (*model.Tokens, error) {
+func (t *tokenUseCase) RefreshToken(ctx context.Context, rToken string) (*user.Tokens, error) {
 
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(rToken, claims, func(token *jwt.Token) (interface{}, error) {
@@ -81,23 +76,23 @@ func (t *tokenUseCase) RefreshToken(ctx context.Context, rToken string) (*model.
 	if !token.Valid {
 		return nil, errors.Wrap(err, "invalid refresh token")
 	}
-	user := claims["name"].(string)
-	res := t.TokenRepo.GetToken(ctx, user)
+	username := claims["name"].(string)
+	res := t.TokenRepo.GetToken(ctx, username)
 
 	if res.Refresh != rToken {
 		return nil, errors.Wrap(err, "invalid refresh token")
 	}
-	tokenA, err := newTokenA(user)
+	tokenA, err := newTokenA(username)
 	if err != nil {
 		return nil, err
 	}
-	tokenR, err := newTokenR(user)
+	tokenR, err := newTokenR(username)
 	if err != nil {
 		return nil, err
 	}
 	access, err := tokenA.SignedString([]byte("key"))
 	refresh, err := tokenR.SignedString([]byte("key"))
-	newToken := model.Tokens{
+	newToken := user.Tokens{
 		Access:  access,
 		Refresh: refresh,
 		Valid:   true,
@@ -105,7 +100,7 @@ func (t *tokenUseCase) RefreshToken(ctx context.Context, rToken string) (*model.
 	if err != nil {
 		return nil, err
 	}
-	err = t.TokenRepo.SetToken(ctx, user, newToken)
+	err = t.TokenRepo.SetToken(ctx, username, newToken)
 	if err != nil {
 		log.Println(err)
 		return nil, err

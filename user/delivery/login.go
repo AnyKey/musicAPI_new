@@ -4,15 +4,15 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"musicAPI/handlers"
-	"musicAPI/token"
+	"musicAPI/user"
 	"net/http"
 )
 
 type AccTokenHandler struct {
-	usecase token.UseCase
+	usecase user.UseCase
 }
 
-func NewAccTokenHandler(usecase token.UseCase) *AccTokenHandler {
+func NewAccTokenHandler(usecase user.UseCase) *AccTokenHandler {
 	return &AccTokenHandler{
 		usecase: usecase,
 	}

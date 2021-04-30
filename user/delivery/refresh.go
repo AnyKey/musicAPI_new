@@ -3,15 +3,15 @@ package delivery
 import (
 	"log"
 	"musicAPI/handlers"
-	"musicAPI/token"
+	"musicAPI/user"
 	"net/http"
 )
 
 type RefTokenHandler struct {
-	usecase token.UseCase
+	usecase user.UseCase
 }
 
-func NewRefTokenHandler(usecase token.UseCase) *RefTokenHandler {
+func NewRefTokenHandler(usecase user.UseCase) *RefTokenHandler {
 	return &RefTokenHandler{
 		usecase: usecase,
 	}

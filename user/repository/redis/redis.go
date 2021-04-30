@@ -1,10 +1,10 @@
-package repository
+package redis
 
 import (
 	"context"
 	"encoding/json"
 	"github.com/go-redis/redis/v8"
-	"musicAPI/model"
+	"musicAPI/user"
 	"time"
 )
 
@@ -12,14 +12,14 @@ type Repository struct {
 	Redis *redis.Client
 }
 
-func NewTokenRepository(redis *redis.Client) *Repository {
+func New(redis *redis.Client) *Repository {
 	return &Repository{
 		Redis: redis,
 	}
 }
-func (repo *Repository) GetToken(ctx context.Context, user string) *model.Tokens {
-	var tokens model.Tokens
-	res := repo.Redis.Get(ctx, "JWT:"+user)
+func (repo *Repository) GetToken(ctx context.Context, username string) *user.Tokens {
+	var tokens user.Tokens
+	res := repo.Redis.Get(ctx, "JWT:"+username)
 	if res.Err() != nil {
 		return nil
 	}
@@ -34,13 +34,13 @@ func (repo *Repository) GetToken(ctx context.Context, user string) *model.Tokens
 	return &tokens
 
 }
-func (repo *Repository) SetToken(ctx context.Context, user string, tokens model.Tokens) error {
+func (repo *Repository) SetToken(ctx context.Context, username string, tokens user.Tokens) error {
 	bytes, err := json.Marshal(tokens)
 	if err != nil {
 		return err
 	}
 
-	res := repo.Redis.Set(ctx, "JWT:"+user, bytes, 6*time.Hour)
+	res := repo.Redis.Set(ctx, "JWT:"+username, bytes, 6*time.Hour)
 	if res.Err() != nil {
 		return res.Err()
 	}

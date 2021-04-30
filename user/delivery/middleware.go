@@ -2,16 +2,16 @@ package delivery
 
 import (
 	"musicAPI/handlers"
-	"musicAPI/token"
+	"musicAPI/user"
 	"net/http"
 	"strings"
 )
 
 type TokenHandler struct { // type tokenMWR struct {}
-	usecase token.UseCase
+	usecase user.UseCase
 }
 
-func NewTokenHandler(usecase token.UseCase) *TokenHandler {
+func NewTokenHandler(usecase user.UseCase) *TokenHandler {
 	return &TokenHandler{
 		usecase: usecase,
 	}
