@@ -65,7 +65,8 @@ func (a *App) Run() {
 	})
 	conn := mustDBConn(sConfig.Database)
 	repo := repository.Repository{Conn: conn, Redis: rdb}
-
+	register := NewReg(conn, rdb, connQueue)
+	_ = register
 	router := mux.NewRouter()
 	router.Use(tokenM.NewTokenHandler(a.tokenUC).TokenMiddleware)
 	router.Use(mux.CORSMethodMiddleware(router))
