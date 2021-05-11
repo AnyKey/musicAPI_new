@@ -13,10 +13,6 @@ type tokenUseCase struct {
 	TokenRepo user.Repository
 }
 
-/* func NewTokenUseCase(tokenRepo token.TokenRepository) *TokenUseCase {
-	return &TokenUseCase{TokenRepo: tokenRepo}
-} */
-
 func New(tokenRepo user.Repository) user.UseCase {
 	return &tokenUseCase{TokenRepo: tokenRepo}
 }

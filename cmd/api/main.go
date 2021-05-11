@@ -1,105 +1,68 @@
 package main
 
 import (
-	"database/sql"
-	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
-	"github.com/streadway/amqp"
-	"github.com/vrischmann/envconfig"
 	"log"
-	"musicAPI/handlers"
-	"musicAPI/repository"
+	"musicAPI/music"
+	musicM "musicAPI/music/delivery"
+	apiMusicRep "musicAPI/music/repository/api"
+	esMusicRep "musicAPI/music/repository/elastic"
+	dbMusicRep "musicAPI/music/repository/postgres"
+	redisMusicRep "musicAPI/music/repository/redis"
+	musicUseCase "musicAPI/music/usecase"
 	"musicAPI/user"
-	tokenM "musicAPI/user/delivery"
-	redisRep "musicAPI/user/repository/redis"
-	tokenUseCase "musicAPI/user/usecase"
+	userM "musicAPI/user/delivery"
+	redisUserRep "musicAPI/user/repository/redis"
+	userUseCase "musicAPI/user/usecase"
 	"net/http"
 	"time"
 )
 
-type config struct {
-	Database    string `envconfig:"DATABASE"`
-	HttpAddress string `envconfig:"HTTP_ADDRESS"`
-	RedisPort   string `envconfig:"REDIS_PORT"`
-	QueuePort   string `envconfig:"QUEUE_PORT"`
-}
 type App struct {
-	tokenUC user.UseCase
+	httpAddress string
+	userUC      user.UseCase
+	musicUC     music.UseCase
 }
 
 func NewApp() *App {
-	var sConfig config
-	err := envconfig.Init(&sConfig)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	db := mustDBConn(sConfig.Database)
-	rdb := redis.NewClient(&redis.Options{
-		Addr: sConfig.RedisPort,
-	})
-	tokenRepo := redisRep.New(rdb)
-	_ = db
+	var reg = NewReg()
+	tokenRepo := redisUserRep.New(reg.rConn)
+	musicRedis := redisMusicRep.New(reg.rConn)
+	musicDB := dbMusicRep.New(reg.dbConn)
+	musicA := apiMusicRep.New("")
+	musicEs := esMusicRep.New(reg.esConn)
 	return &App{
-		tokenUC: tokenUseCase.New(
+		httpAddress: reg.address,
+		userUC: userUseCase.New(
 			tokenRepo,
+		),
+		musicUC: musicUseCase.New(
+			musicRedis,
+			musicDB,
+			musicA,
+			musicEs,
 		),
 	}
 }
 func (a *App) Run() {
-	var sConfig config
-	err := envconfig.Init(&sConfig)
-	if err != nil {
-		panic(err)
-	}
-	connQueue, err := amqp.Dial(sConfig.QueuePort)
-	failOnError(err, "Failed to connect to RabbitMQ")
-	defer connQueue.Close()
-	ch, err := connQueue.Channel()
-	failOnError(err, "Failed to open a channel")
-	defer ch.Close()
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr: sConfig.RedisPort,
-	})
-	conn := mustDBConn(sConfig.Database)
-	repo := repository.Repository{Conn: conn, Redis: rdb}
-	register := NewReg(conn, rdb, connQueue)
-	_ = register
 	router := mux.NewRouter()
-	router.Use(tokenM.NewTokenHandler(a.tokenUC).TokenMiddleware)
+	router.Use(userM.NewUserHandler(a.userUC).UserMiddleware)
 	router.Use(mux.CORSMethodMiddleware(router))
-	router.Handle("/api/artist/{artist}", handlers.ArtistHandler{Repo: repo}).Methods(http.MethodGet, http.MethodOptions) //4
-	router.Handle("/api/login/{name}", tokenM.NewAccTokenHandler(a.tokenUC)).Methods(http.MethodGet, http.MethodOptions)
-	router.Handle("/api/refresh", tokenM.NewRefTokenHandler(a.tokenUC)).Methods(http.MethodGet, http.MethodOptions)
+	userM.UserHandlers(router, a.userUC)
+	musicM.MusicHandlers(router, a.musicUC)
 
 	srv := &http.Server{
 		Handler:      router,
-		Addr:         sConfig.HttpAddress,
+		Addr:         a.httpAddress,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	log.Println("Serve http ON", sConfig.HttpAddress)
+	log.Println("Serve http ON", a.httpAddress)
 	log.Fatal(srv.ListenAndServe())
 
-}
-
-func mustDBConn(database string) *sql.DB {
-	db, err := sql.Open("postgres", database)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if db.Ping() != nil {
-		log.Fatalln(err)
-	}
-	return db
-}
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Printf("%s: %s", msg, err)
-	}
 }
 
 func main() {

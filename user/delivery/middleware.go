@@ -7,23 +7,23 @@ import (
 	"strings"
 )
 
-type TokenHandler struct { // type tokenMWR struct {}
+type UserMiddleHandler struct {
 	usecase user.UseCase
 }
 
-func NewTokenHandler(usecase user.UseCase) *TokenHandler {
-	return &TokenHandler{
+func NewUserHandler(usecase user.UseCase) *UserMiddleHandler {
+	return &UserMiddleHandler{
 		usecase: usecase,
 	}
 }
 
-func (th TokenHandler) TokenMiddleware(next http.Handler) http.Handler {
+func (th UserMiddleHandler) UserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//w.Header().Set("Access-Control-Allow-Origin", "*")
-		//		w.Header().Set("Access-Control-Allow-Headers", "token")
-		//		if r.Method == http.MethodOptions {
-		//			return
-		//		}
+		/*w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "token")
+		if r.Method == http.MethodOptions {
+			return
+		}*/
 		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") {
 			next.ServeHTTP(w, r)
 			return
