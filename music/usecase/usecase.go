@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 	"encoding/json"
-	"github.com/elastic/go-elasticsearch/v7"
+	"fmt"
 	"log"
 	"musicAPI/model"
 	"musicAPI/music"
@@ -106,6 +106,56 @@ func (muc *musicUseCase) GenreReq(ctx context.Context, genre string) ([]model.Tr
 	return nil, nil
 }
 
-/*func structConv(trackList *model.OwnTrack) model.TrackSelect {
-	return model.TrackSelect{trackList.Name, trackList.Album.Artist, trackList.Album.Album}
-}*/
+func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist string) ([]model.TrackSelect, bool, error) {
+	var value bool
+	tracks := muc.MusicRedisRepo.GetTracksRedis(ctx, track, artist)
+	if tracks != nil {
+		if muc.MusicEsRepo.ElasticGet(tracks) != true {
+			err := muc.MusicEsRepo.ElasticAdd(tracks)
+			if err != nil {
+				log.Println("error elastic add")
+			}
+		}
+	}
+	if tracks != nil {
+		value = true
+		return tracks, value, nil
+	}
+
+	tracks, err := muc.MusicPostgresRepo.GetTracks(track, artist)
+	bytes, err := json.Marshal(tracks)
+	if err == nil && tracks != nil {
+		muc.MusicRedisRepo.SetTracksRedis(ctx, track, artist, bytes)
+	}
+	re, err := muc.MusicApiRepo.TrackSearchReq(track, artist)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	if re == nil {
+		value = false
+		return nil, value, err
+	}
+	if tracks != nil {
+		if tracks[0].Album == "" || tracks[0].Name == "" || tracks[0].Artist == "" {
+			value = false
+		}
+	}
+	if re != nil {
+		go func() {
+			err = muc.MusicPostgresRepo.SetTracks(*re)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+		}()
+	}
+	result := structConv(re)
+	return result, value, nil
+}
+func structConv(trackList *model.OwnTrack) []model.TrackSelect {
+	return []model.TrackSelect{{
+		trackList.Name,
+		trackList.Album.Artist,
+		trackList.Album.Album,
+	},
+	}
+}

@@ -119,3 +119,7 @@ func (repo Repository) SetGenreRedis(ctx context.Context, genre string, bytes []
 	repo.Redis.Set(ctx, "Genre:"+genre, bytes, 5*time.Minute)
 	return
 }
+func (repo Repository) SetTracksRedis(ctx context.Context, track string, artist string, bytes []byte) {
+	repo.Redis.Set(ctx, "Track:"+track+"_Artist:"+artist, bytes, 20*time.Minute)
+	return
+}

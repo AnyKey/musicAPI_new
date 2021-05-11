@@ -20,6 +20,7 @@ type PostgresRepository interface {
 
 type RedisRepository interface {
 	GetTracksRedis(ctx context.Context, track string, artist string) []model.TrackSelect
+	SetTracksRedis(ctx context.Context, track string, artist string, bytes []byte)
 	GetGenreRedis(ctx context.Context, genre string) []model.TrackSelect
 	SetGenreRedis(ctx context.Context, genre string, bytes []byte)
 	GetArtistRedis(ctx context.Context, artist string) []model.TrackSelect
@@ -38,7 +39,7 @@ type UseCase interface {
 	GenreReq(ctx context.Context, genre string) ([]model.TrackSelect, error)
 	AlbumInfoRes(ctx context.Context, album string, artist string) (*model.Root, error)
 	ChartReq(ctx context.Context, sortTo string) ([]model.ChartSelect, error)
-	TrackReq(ctx context.Context, album string, artist string) ([]model.TrackSelect, error) //very hard!!!
+	TrackReq(ctx context.Context, track string, artist string) ([]model.TrackSelect, bool, error) //very hard!!!
 }
 type ElasticRepository interface {
 	ElasticAdd(tracks []model.TrackSelect) error
