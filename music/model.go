@@ -15,7 +15,7 @@ type PostgresRepository interface {
 	SetTracks(newTracks model.OwnTrack) error
 	GetGenreTracks(genre string) ([]model.TrackSelect, error)
 	GetArtistTracks(artist string) ([]model.TrackSelect, error)
-	GetChart(sortTo string) ([]model.ChartSelect, error)
+	GetChart(sortTo string) ([]ChartSelect, error)
 }
 
 type RedisRepository interface {
@@ -25,7 +25,7 @@ type RedisRepository interface {
 	SetGenreRedis(ctx context.Context, genre string, bytes []byte)
 	GetArtistRedis(ctx context.Context, artist string) []model.TrackSelect
 	SetArtistRedis(ctx context.Context, artist string, bytes []byte)
-	GetChartRedis(ctx context.Context, sortTo string) []model.ChartSelect
+	GetChartRedis(ctx context.Context, sortTo string) []ChartSelect
 	SetChartRedis(ctx context.Context, sortTo string, bytes []byte)
 	GetAlbumRedis(ctx context.Context, album string, artist string) *model.Root
 	SetAlbumRedis(ctx context.Context, album string, artist string, bytes []byte)
@@ -38,10 +38,19 @@ type UseCase interface {
 	ArtistReq(ctx context.Context, artist string) ([]model.TrackSelect, error)
 	GenreReq(ctx context.Context, genre string) ([]model.TrackSelect, error)
 	AlbumInfoRes(ctx context.Context, album string, artist string) (*model.Root, error)
-	ChartReq(ctx context.Context, sortTo string) ([]model.ChartSelect, error)
+	ChartReq(ctx context.Context, sortTo string) ([]ChartSelect, error)
 	TrackReq(ctx context.Context, track string, artist string) ([]model.TrackSelect, bool, error)
 }
 type ElasticRepository interface {
 	ElasticAdd(tracks []model.TrackSelect) error
 	ElasticGet(tracks []model.TrackSelect) bool
+}
+
+type ChartSelect struct {
+	Track     string `json:"track"`
+	Artist    string `json:"artist"`
+	Album     string `json:"album"`
+	Listeners int    `json:"listeners"`
+	Playcount int    `json:"playcount"`
+	Genre     string `json:"genre"`
 }

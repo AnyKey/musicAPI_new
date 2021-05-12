@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"log"
 	"musicAPI/model"
+	"musicAPI/music"
 )
 
 type Repository struct {
@@ -203,9 +204,9 @@ func (repo Repository) GetArtistTracks(artist string) ([]model.TrackSelect, erro
 	return trackList, nil
 }
 
-func (repo Repository) GetChart(sortTo string) ([]model.ChartSelect, error) {
+func (repo Repository) GetChart(sortTo string) ([]music.ChartSelect, error) {
 
-	var trackList []model.ChartSelect
+	var trackList []music.ChartSelect
 	var querySql string
 	if sortTo == "list" {
 		querySql = "SELECT track.listeners as listeners, track.playcount as playcount, track.name as track," +
@@ -227,7 +228,7 @@ func (repo Repository) GetChart(sortTo string) ([]model.ChartSelect, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		tl := model.ChartSelect{}
+		tl := music.ChartSelect{}
 		err := rows.Scan(&tl.Listeners, &tl.Playcount, &tl.Track, &tl.Artist, &tl.Album, &tl.Genre)
 		if err != nil {
 			return nil, errors.Wrap(err, "error Scan values")

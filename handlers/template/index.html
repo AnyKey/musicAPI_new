@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.0.js"></script>
+  <title>main</title>
+</head>
+<body>
+<br><br>
+<label>
+  <input id="name" type="text" placeholder="Название песни">
+</label>
+<div>
+  <input type="checkbox" id="name_id" name="name"
+         checked>
+  <label for="name_id">название тека</label>
+</div>
+<div>
+  <input type="checkbox" id="artist_id" name="artist">
+  <label for="artist_id">исполнитель</label>
+</div>
+<div>
+  <input type="checkbox" id="album_id" name="album">
+  <label for="album_id">альбом</label>
+</div>
+<label>
+  <input id="socket" type="button" value="Search">
+</label>
+<br>
+<br>
+<table border="black" width="50%">
+  <thead>
+  <tr>
+    <th>Трек</th>
+    <th>Исполнитель</th>
+    <th>Альбом</th>
+  </tr>
+  </thead>
+  <tbody id="list">
+  </tbody>
+</table>
+
+</body>
+<script type="text/javascript">
+  let url = "ws://localhost:8001/ws"
+  let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjA4Mjc0MTcsIm5hbWUiOiJOZXciLCJyb290Ijp0cnVlfQ.uEpJHlgHTjWrDtWWP6BBYca26MWphbkCJT3ihzw0-PI";
+  webSocket = new WebSocket(url);
+  webSocket.onopen = () => webSocket.send(token);
+  webSocket.onmessage = function (event) {
+    console.log(event.data)
+  }
+  $("#socket").click(function () {
+    let nameCheck, artistCheck, albumCheck
+    if (document.getElementById('name_id').checked) {
+      nameCheck = true
+    } else {
+      nameCheck = false
+    }
+    if (document.getElementById('artist_id').checked) {
+      artistCheck = true
+    } else {
+      artistCheck = false
+    }
+    if (document.getElementById('album_id').checked) {
+      albumCheck = true
+    } else {
+      albumCheck = false
+    }
+    let track = $("#name").val();
+    var msg = {
+      track: track,
+      nameCheck: nameCheck,
+      artistCheck: artistCheck,
+      albumCheck: albumCheck
+    };
+    webSocket.send(JSON.stringify(msg));
+    console.log(webSocket.bufferedAmount)
+    webSocket.onmessage = function (event) {
+      renderMessagesTop(JSON.parse(event.data))
+    }
+  });
+
+</script>
+<script type="text/javascript">
+  /*$("#searchTrack").click(function () {
+    let nameCheck, artistCheck, albumCheck
+    if (document.getElementById('name_id').checked) {
+      nameCheck = true
+    } else {
+      nameCheck = false
+    }
+    if (document.getElementById('artist_id').checked) {
+      artistCheck = true
+    } else {
+      artistCheck = false
+    }
+    if (document.getElementById('album_id').checked) {
+      albumCheck = true
+    } else {
+      albumCheck = false
+    }
+    let track = $("#name").val();
+    var myHeaders = new Headers();
+    myHeaders.append("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjA4Mjc0MTcsIm5hbWUiOiJOZXciLCJyb290Ijp0cnVlfQ.uEpJHlgHTjWrDtWWP6BBYca26MWphbkCJT3ihzw0-PI");
+    var requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+      redirect: 'follow'
+    };
+    if (track != "") {
+      fetch('http://localhost:8001/api/elastic/' + nameCheck + '/' + artistCheck + '/' + albumCheck + '/' + track, requestOptions)
+              .then(data => data.json())
+              .then(json => renderMessagesTop(json))
+    }
+  });*/
+
+  function renderMessagesTop(json) {
+
+    $("#list").empty();
+    if (json == null) {
+      return null;
+    }
+    $("#list").append(json.map(elem => {
+      let el = $("<tr>").append(`
+                    <td>${elem.name}</td>
+                    <td>${elem.artist}</td>
+                    <td>${elem.album}</td>
+            `);
+
+      return el;
+    }))
+  }
+
+</script>
+</html>

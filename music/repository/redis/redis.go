@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/go-redis/redis/v8"
 	"musicAPI/model"
+	"musicAPI/music"
 	"time"
 )
 
@@ -69,8 +70,8 @@ func (repo Repository) GetArtistRedis(ctx context.Context, artist string) []mode
 	return trackList
 }
 
-func (repo Repository) GetChartRedis(ctx context.Context, sortTo string) []model.ChartSelect {
-	var trackList []model.ChartSelect
+func (repo Repository) GetChartRedis(ctx context.Context, sortTo string) []music.ChartSelect {
+	var trackList []music.ChartSelect
 	res := repo.Redis.Get(ctx, "SortTo:"+sortTo)
 	if res.Err() != nil {
 		return nil

@@ -1,4 +1,4 @@
-package elastic_search
+package elastic
 
 import (
 	"github.com/gorilla/websocket"

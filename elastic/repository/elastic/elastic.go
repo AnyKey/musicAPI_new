@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"github.com/elastic/go-elasticsearch/v7"
 	"log"
-	"musicAPI/elastic_search"
+	"musicAPI/elastic"
 	"musicAPI/model"
 	"strings"
 )
@@ -21,7 +21,7 @@ func New(es *elasticsearch.Client) *Repository {
 	}
 }
 
-func (repo *Repository) FullTextSearch(resData elastic_search.SocketSend) ([]model.TrackSelect, error) {
+func (repo *Repository) FullTextSearch(resData elastic.SocketSend) ([]model.TrackSelect, error) {
 	var nameValue, artistValue, albumValue string
 
 	if resData.NameCheck == true {

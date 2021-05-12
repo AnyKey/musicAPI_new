@@ -5,7 +5,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"log"
 	"musicAPI/logs"
-	"musicAPI/model"
 	"time"
 )
 
@@ -27,7 +26,7 @@ func (lu *logsUseCase) QueueAppend(myToken string, addr string) error {
 	}
 	user := (claims["name"]).(string)
 	queue := lu.RabbitRepo.NewQueue()
-	body := model.LogBody{
+	body := logs.LogBody{
 		Name:   user,
 		Action: addr,
 		Time:   time.Now(),

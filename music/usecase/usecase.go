@@ -46,7 +46,7 @@ func (muc *musicUseCase) AlbumInfoRes(ctx context.Context, album string, artist 
 	}
 	return nil, err
 }
-func (muc *musicUseCase) ChartReq(ctx context.Context, sortTo string) ([]model.ChartSelect, error) {
+func (muc *musicUseCase) ChartReq(ctx context.Context, sortTo string) ([]music.ChartSelect, error) {
 	chart := muc.MusicRedisRepo.GetChartRedis(ctx, sortTo)
 	if chart != nil {
 		return chart, nil

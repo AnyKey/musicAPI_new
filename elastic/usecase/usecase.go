@@ -5,20 +5,20 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/websocket"
 	"log"
-	"musicAPI/elastic_search"
+	"musicAPI/elastic"
 )
 
 type elasticUseCase struct {
-	ElasticRepo elastic_search.Repository
+	ElasticRepo elastic.Repository
 }
 
-func New(elasticRepo elastic_search.Repository) elastic_search.UseCase {
+func New(elasticRepo elastic.Repository) elastic.UseCase {
 	return &elasticUseCase{ElasticRepo: elasticRepo}
 }
 func (euc elasticUseCase) WsSending(conn *websocket.Conn) {
 	var auth bool
 	var validToken bool
-	var newWs elastic_search.SocketSend
+	var newWs elastic.SocketSend
 	var token string
 	for {
 		messageType, r, err := conn.ReadMessage()

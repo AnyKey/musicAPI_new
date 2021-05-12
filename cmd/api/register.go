@@ -27,7 +27,7 @@ func NewReg() *register {
 	var sConfig config
 	err := envconfig.Init(&sConfig)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	connQueue, err := amqp.Dial(sConfig.QueuePort)
 	failOnError(err, "Failed to connect to RabbitMQ")
