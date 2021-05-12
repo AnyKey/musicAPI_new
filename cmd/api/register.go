@@ -18,7 +18,7 @@ type config struct {
 type register struct {
 	dbConn  *sql.DB
 	rConn   *redis.Client
-	qConn   *amqp.Connection
+	qConn   *amqp.Channel
 	esConn  *elasticsearch.Client
 	address string
 }
@@ -31,10 +31,10 @@ func NewReg() *register {
 	}
 	connQueue, err := amqp.Dial(sConfig.QueuePort)
 	failOnError(err, "Failed to connect to RabbitMQ")
-	defer connQueue.Close()
+	//	defer connQueue.Close()
 	ch, err := connQueue.Channel()
 	failOnError(err, "Failed to open a channel")
-	defer ch.Close()
+	//	defer ch.Close()
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Username: "elastic",
 		Password: "changeme",
@@ -51,7 +51,7 @@ func NewReg() *register {
 	return &register{
 		dbConn:  conn,
 		rConn:   rdb,
-		qConn:   connQueue,
+		qConn:   ch,
 		esConn:  es,
 		address: sConfig.HttpAddress,
 	}

@@ -19,11 +19,11 @@ func NewUserHandler(usecase user.UseCase) *UserMiddleHandler {
 
 func (th UserMiddleHandler) UserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		/*w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "token")
 		if r.Method == http.MethodOptions {
 			return
-		}*/
+		}
 		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") {
 			next.ServeHTTP(w, r)
 			return

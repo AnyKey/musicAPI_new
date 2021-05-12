@@ -39,7 +39,7 @@ type UseCase interface {
 	GenreReq(ctx context.Context, genre string) ([]model.TrackSelect, error)
 	AlbumInfoRes(ctx context.Context, album string, artist string) (*model.Root, error)
 	ChartReq(ctx context.Context, sortTo string) ([]model.ChartSelect, error)
-	TrackReq(ctx context.Context, track string, artist string) ([]model.TrackSelect, bool, error) //very hard!!!
+	TrackReq(ctx context.Context, track string, artist string) ([]model.TrackSelect, bool, error)
 }
 type ElasticRepository interface {
 	ElasticAdd(tracks []model.TrackSelect) error

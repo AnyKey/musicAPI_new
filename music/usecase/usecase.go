@@ -16,7 +16,10 @@ type musicUseCase struct {
 	MusicEsRepo       music.ElasticRepository
 }
 
-func New(musicRedisRepo music.RedisRepository, musicPostgresRepo music.PostgresRepository, musicApiRepo music.ApiRepository, musicEsRepo music.ElasticRepository) music.UseCase {
+func New(musicRedisRepo music.RedisRepository,
+	musicPostgresRepo music.PostgresRepository,
+	musicApiRepo music.ApiRepository,
+	musicEsRepo music.ElasticRepository) music.UseCase {
 	return &musicUseCase{
 		MusicRedisRepo:    musicRedisRepo,
 		MusicPostgresRepo: musicPostgresRepo,

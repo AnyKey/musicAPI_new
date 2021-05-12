@@ -1,42 +1,27 @@
-package handlers
+package elastic
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/elastic/go-elasticsearch/v7"
-	"github.com/gorilla/mux"
 	"log"
+	"musicAPI/elastic_search"
 	"musicAPI/model"
-	"net/http"
 	"strings"
 )
 
-func ElasticHandler(w http.ResponseWriter, r *http.Request) {
-	track := mux.Vars(r)["track"]
-	elSelect := socketSend{
-		track,
-		boolConv(mux.Vars(r)["name"]),
-		boolConv(mux.Vars(r)["artist"]),
-		boolConv(mux.Vars(r)["album"]),
-	}
-	trackList, err := fullTextSearch(elSelect)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		WriteJsonToResponse(w, err.Error())
-		return
-	}
-	if trackList == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		WriteJsonToResponse(w, "Bad request")
-		return
-	}
-
-	WriteJsonToResponse(w, trackList)
-	return
+type Repository struct {
+	Es *elasticsearch.Client
 }
 
-func fullTextSearch(resData socketSend) ([]model.TrackSelect, error) {
+func New(es *elasticsearch.Client) *Repository {
+	return &Repository{
+		Es: es,
+	}
+}
+
+func (repo *Repository) FullTextSearch(resData elastic_search.SocketSend) ([]model.TrackSelect, error) {
 	var nameValue, artistValue, albumValue string
 
 	if resData.NameCheck == true {
@@ -133,17 +118,6 @@ func fullTextSearch(resData socketSend) ([]model.TrackSelect, error) {
 		return trackList, nil
 	}
 	return nil, nil
-}
-
-func boolConv(id string) bool {
-	switch id {
-	case "true":
-		return true
-	case "false":
-		return false
-	default:
-		return false
-	}
 }
 
 type queryString struct {
