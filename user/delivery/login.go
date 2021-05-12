@@ -4,20 +4,10 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"musicAPI/handlers"
-	"musicAPI/user"
 	"net/http"
 )
 
-type AccTokenHandler struct {
-	usecase user.UseCase
-}
-
-func NewAccTokenHandler(usecase user.UseCase) *AccTokenHandler {
-	return &AccTokenHandler{
-		usecase: usecase,
-	}
-}
-func (th AccTokenHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (th UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["name"]
 	if user == "" {
