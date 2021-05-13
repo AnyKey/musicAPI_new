@@ -42,7 +42,7 @@ func (repo Repository) GetTracks(track string, artist string) ([]model.TrackSele
 	return trackList, nil
 }
 
-func (repo Repository) SetTracks(newTracks model.OwnTrack) error {
+func (repo Repository) SetTracks(newTracks music.OwnTrack) error {
 	ctx := context.Background()
 	tx, err := repo.Conn.BeginTx(ctx, nil)
 	if err != nil {

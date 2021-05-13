@@ -4,34 +4,35 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	"musicAPI/model"
 	"musicAPI/music"
 	"net/http"
 	"time"
 )
 
-type Repository struct {
-	text string
+type Delivery struct {
 }
 
-func New(text string) *Repository {
-	return &Repository{
-		text: text,
-	}
+func New() *Delivery {
+	return &Delivery{}
 }
 
-func (a Repository) AlbumInfoReq(album string, artist string) (*model.Root, error) {
+const (
+	baseURL = "http://ws.audioscrobbler.com/2.0/"
+	apiKey  = "d84296d9388306355db600e324a85b9b"
+)
+
+func (*Delivery) AlbumInfoReq(album string, artist string) (*music.Root, error) {
 	http.DefaultClient = &http.Client{
 		Timeout: 10 * time.Second,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, music.BaseURL, nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error create new request")
 	}
 
 	query := req.URL.Query()
-	query.Add("api_key", music.ApiKey)
+	query.Add("api_key", apiKey)
 	query.Add("artist", artist)
 	query.Add("album", album)
 	query.Add("format", "json")
@@ -48,7 +49,7 @@ func (a Repository) AlbumInfoReq(album string, artist string) (*model.Root, erro
 	if err != nil {
 		return nil, errors.Wrap(err, "Error conv bytes")
 	}
-	var val model.Root
+	var val music.Root
 	err = json.Unmarshal(bytes, &val)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error Unmarshal")
@@ -57,18 +58,18 @@ func (a Repository) AlbumInfoReq(album string, artist string) (*model.Root, erro
 	return &val, nil
 }
 
-func (a *Repository) TrackSearchReq(track string, artist string) (*model.OwnTrack, error) {
+func (*Delivery) TrackSearchReq(track string, artist string) (*music.OwnTrack, error) {
 	http.DefaultClient = &http.Client{
 		Timeout: 5 * time.Second,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, music.BaseURL, nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error create new request")
 	}
 
 	query := req.URL.Query()
-	query.Add("api_key", music.ApiKey)
+	query.Add("api_key", apiKey)
 	query.Add("artist", artist)
 	query.Add("track", track)
 	query.Add("format", "json")
@@ -86,7 +87,7 @@ func (a *Repository) TrackSearchReq(track string, artist string) (*model.OwnTrac
 	if err != nil {
 		return nil, errors.Wrap(err, "Error conv bytes")
 	}
-	var tracks model.TrackRoot
+	var tracks music.TrackRoot
 	err = json.Unmarshal(bytes, &tracks)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error Unmarshal")

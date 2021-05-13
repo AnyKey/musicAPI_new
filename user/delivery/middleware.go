@@ -1,23 +1,23 @@
 package delivery
 
 import (
-	"musicAPI/handlers"
+	"musicAPI/client"
 	"musicAPI/user"
 	"net/http"
 	"strings"
 )
 
-type UserMiddleHandler struct {
+type userMiddleHandler struct {
 	usecase user.UseCase
 }
 
-func NewUserHandler(usecase user.UseCase) *UserMiddleHandler {
-	return &UserMiddleHandler{
+func NewUserHandler(usecase user.UseCase) *userMiddleHandler {
+	return &userMiddleHandler{
 		usecase: usecase,
 	}
 }
 
-func (th UserMiddleHandler) UserMiddleware(next http.Handler) http.Handler {
+func (th *userMiddleHandler) UserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "token")
@@ -37,7 +37,7 @@ func (th UserMiddleHandler) UserMiddleware(next http.Handler) http.Handler {
 			}
 		}
 		w.WriteHeader(http.StatusUnauthorized)
-		_ = handlers.WriteJsonToResponse(w, "Unauthorized")
+		_ = client.WriteJsonToResponse(w, "Unauthorized")
 	})
 
 }

@@ -12,13 +12,13 @@ import (
 type musicUseCase struct {
 	MusicRedisRepo    music.RedisRepository
 	MusicPostgresRepo music.PostgresRepository
-	MusicApiRepo      music.ApiRepository
+	MusicApiRepo      music.Delivery
 	MusicEsRepo       music.ElasticRepository
 }
 
 func New(musicRedisRepo music.RedisRepository,
 	musicPostgresRepo music.PostgresRepository,
-	musicApiRepo music.ApiRepository,
+	musicApiRepo music.Delivery,
 	musicEsRepo music.ElasticRepository) music.UseCase {
 	return &musicUseCase{
 		MusicRedisRepo:    musicRedisRepo,
@@ -28,7 +28,7 @@ func New(musicRedisRepo music.RedisRepository,
 	}
 }
 
-func (muc *musicUseCase) AlbumInfoRes(ctx context.Context, album string, artist string) (*model.Root, error) {
+func (muc *musicUseCase) AlbumInfoRes(ctx context.Context, album string, artist string) (*music.Root, error) {
 	var err error
 	result := muc.MusicRedisRepo.GetAlbumRedis(ctx, album, artist)
 	if result != nil {
@@ -154,7 +154,7 @@ func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist stri
 	result := structConv(re)
 	return result, value, nil
 }
-func structConv(trackList *model.OwnTrack) []model.TrackSelect {
+func structConv(trackList *music.OwnTrack) []model.TrackSelect {
 	return []model.TrackSelect{{
 		trackList.Name,
 		trackList.Album.Artist,

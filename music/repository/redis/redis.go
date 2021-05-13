@@ -87,8 +87,8 @@ func (repo Repository) GetChartRedis(ctx context.Context, sortTo string) []music
 	return trackList
 }
 
-func (repo Repository) GetAlbumRedis(ctx context.Context, album string, artist string) *model.Root {
-	var trackList *model.Root
+func (repo Repository) GetAlbumRedis(ctx context.Context, album string, artist string) *music.Root {
+	var trackList *music.Root
 	res := repo.Redis.Get(ctx, "Album:"+album+"_Artist:"+artist)
 	if res.Err() != nil {
 		return nil

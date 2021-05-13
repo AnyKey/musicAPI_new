@@ -6,17 +6,17 @@ import (
 	"net/http"
 )
 
-type LogMiddleHandler struct {
+type logMiddleHandler struct {
 	usecase logs.UseCase
 }
 
-func NewLogHandler(usecase logs.UseCase) *LogMiddleHandler {
-	return &LogMiddleHandler{
+func NewLogHandler(usecase logs.UseCase) *logMiddleHandler {
+	return &logMiddleHandler{
 		usecase: usecase,
 	}
 }
 
-func (lh LogMiddleHandler) LogMiddleware(next http.Handler) http.Handler {
+func (lh *logMiddleHandler) LogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("token")
 		addr := r.RequestURI

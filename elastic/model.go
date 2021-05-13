@@ -5,11 +5,6 @@ import (
 	"musicAPI/model"
 )
 
-var Upgrader = websocket.Upgrader{
-	ReadBufferSize:  512,
-	WriteBufferSize: 512,
-}
-
 type Repository interface {
 	FullTextSearch(resData SocketSend) ([]model.TrackSelect, error)
 }

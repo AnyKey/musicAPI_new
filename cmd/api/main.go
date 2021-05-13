@@ -5,24 +5,25 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/lib/pq"
 	"log"
+	"musicAPI/client"
 	"musicAPI/elastic"
 	elasticM "musicAPI/elastic/delivery"
 	elasticRep "musicAPI/elastic/repository/elastic"
 	elasticUseCase "musicAPI/elastic/usecase"
-	"musicAPI/handlers"
 	"musicAPI/logs"
 	logsM "musicAPI/logs/delivery"
 	rabbitMqLogs "musicAPI/logs/repository/rabbitmq"
 	logsUseCase "musicAPI/logs/usecase"
 	"musicAPI/music"
-	musicM "musicAPI/music/delivery"
-	apiMusicRep "musicAPI/music/repository/api"
+	"musicAPI/music/delivery/api"
+	musicH "musicAPI/music/delivery/http"
 	esMusicRep "musicAPI/music/repository/elastic"
 	dbMusicRep "musicAPI/music/repository/postgres"
 	redisMusicRep "musicAPI/music/repository/redis"
 	musicUseCase "musicAPI/music/usecase"
 	"musicAPI/user"
 	userM "musicAPI/user/delivery"
+	userH "musicAPI/user/delivery/http"
 	redisUserRep "musicAPI/user/repository/redis"
 	userUseCase "musicAPI/user/usecase"
 	"net/http"
@@ -42,7 +43,7 @@ func NewApp() *App {
 	userDB := redisUserRep.New(reg.rConn)
 	musicRedis := redisMusicRep.New(reg.rConn)
 	musicDB := dbMusicRep.New(reg.dbConn)
-	musicA := apiMusicRep.New("")
+	musicA := api.New()
 	musicEs := esMusicRep.New(reg.esConn)
 	logsRab := rabbitMqLogs.New(reg.qConn)
 	elasticEs := elasticRep.New(reg.esConn)
@@ -72,9 +73,9 @@ func (a *App) Run() {
 	router.Use(logsM.NewLogHandler(a.logsUC).LogMiddleware)
 	router.Use(elasticM.NewTrackHandler(a.elasticUC).WsHandler)
 	router.Use(mux.CORSMethodMiddleware(router))
-	userM.UserHandlers(router, a.userUC)
-	musicM.MusicHandlers(router, a.musicUC)
-	handlers.Template(router)
+	userH.UserHandlers(router, a.userUC)
+	musicH.MusicHandlers(router, a.musicUC)
+	client.Template(router)
 
 	srv := &http.Server{
 		Handler:      router,

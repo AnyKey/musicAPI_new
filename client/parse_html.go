@@ -1,4 +1,4 @@
-package handlers
+package client
 
 import (
 	"github.com/gorilla/mux"
@@ -21,7 +21,7 @@ func parseHtml(w http.ResponseWriter, r *http.Request) {
 }
 
 func parsePage(w http.ResponseWriter) (error, http.ResponseWriter) {
-	tmpl, err := template.ParseFiles("handlers/template/index.html")
+	tmpl, err := template.ParseFiles("client/template/index.html")
 	if err != nil {
 		WriteJsonToResponse(w, err.Error())
 		return err, w
