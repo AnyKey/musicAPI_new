@@ -15,7 +15,7 @@ type elasticUseCase struct {
 func New(elasticRepo elastic.Repository) elastic.UseCase {
 	return &elasticUseCase{ElasticRepo: elasticRepo}
 }
-func (euc elasticUseCase) WsSending(conn *websocket.Conn) {
+func (euc *elasticUseCase) WsSending(conn *websocket.Conn) {
 	var auth bool
 	var validToken bool
 	var newWs elastic.SocketSend

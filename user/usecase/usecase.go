@@ -34,12 +34,12 @@ func (t *tokenUseCase) CheckToken(ctx context.Context, myToken string) bool {
 }
 
 func (t *tokenUseCase) NewToken(ctx context.Context, username string) (*user.Tokens, error) {
-	tokenA, err := newTokenA(username)
+	tokenA, err := newTokenAccess(username)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	tokenR, err := newTokenR(username)
+	tokenR, err := newTokenRefresh(username)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -59,10 +59,10 @@ func (t *tokenUseCase) NewToken(ctx context.Context, username string) (*user.Tok
 	return &newTokens, nil
 }
 
-func (t *tokenUseCase) RefreshToken(ctx context.Context, rToken string) (*user.Tokens, error) {
+func (t *tokenUseCase) RefreshToken(ctx context.Context, refreshToken string) (*user.Tokens, error) {
 
 	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(rToken, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte("key"), nil
 	})
 	if err != nil {
@@ -75,19 +75,19 @@ func (t *tokenUseCase) RefreshToken(ctx context.Context, rToken string) (*user.T
 	username := claims["name"].(string)
 	res := t.TokenRepo.GetToken(ctx, username)
 
-	if res.Refresh != rToken {
+	if res.Refresh != refreshToken {
 		return nil, errors.Wrap(err, "invalid refresh token")
 	}
-	tokenA, err := newTokenA(username)
+	tokenAccess, err := newTokenAccess(username)
 	if err != nil {
 		return nil, err
 	}
-	tokenR, err := newTokenR(username)
+	tokenRefresh, err := newTokenRefresh(username)
 	if err != nil {
 		return nil, err
 	}
-	access, err := tokenA.SignedString([]byte("key"))
-	refresh, err := tokenR.SignedString([]byte("key"))
+	access, err := tokenAccess.SignedString([]byte("key"))
+	refresh, err := tokenRefresh.SignedString([]byte("key"))
 	newToken := user.Tokens{
 		Access:  access,
 		Refresh: refresh,
@@ -104,7 +104,7 @@ func (t *tokenUseCase) RefreshToken(ctx context.Context, rToken string) (*user.T
 	return &newToken, nil
 }
 
-func newTokenA(user string) (*jwt.Token, error) {
+func newTokenAccess(user string) (*jwt.Token, error) {
 	return jwt.NewWithClaims(
 		jwt.GetSigningMethod("HS256"),
 		jwt.MapClaims{
@@ -113,7 +113,7 @@ func newTokenA(user string) (*jwt.Token, error) {
 			"root": true,
 		}), nil
 }
-func newTokenR(user string) (*jwt.Token, error) {
+func newTokenRefresh(user string) (*jwt.Token, error) {
 	return jwt.NewWithClaims(
 		jwt.GetSigningMethod("HS256"),
 		jwt.MapClaims{

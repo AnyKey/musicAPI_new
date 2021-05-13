@@ -24,21 +24,21 @@ func MusicHandlers(router *mux.Router, musicUC music.UseCase) {
 	router.HandleFunc("/api/genre/{genre}", musicH.genre).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/api/track/{artist}/{track}", musicH.track).Methods(http.MethodGet, http.MethodOptions)
 }
-func (mu *musicHandler) album(writer http.ResponseWriter, req *http.Request) {
+func (mu *musicHandler) album(w http.ResponseWriter, r *http.Request) {
 
 	var ctx = context.Background()
-	vars := mux.Vars(req)
+	vars := mux.Vars(r)
 	album, artist := vars["album"], vars["artist"]
 	result, err := mu.usecase.AlbumInfoRes(ctx, album, artist)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
-		err = helper.WriteJsonToResponse(writer, err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		err = helper.WriteJsonToResponse(w, err.Error())
 		if err != nil {
 			log.Println(err.Error())
 		}
 	}
 	if result != nil {
-		err = helper.WriteJsonToResponse(writer, result)
+		err = helper.WriteJsonToResponse(w, result)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -46,126 +46,126 @@ func (mu *musicHandler) album(writer http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func (mu *musicHandler) chart(writer http.ResponseWriter, req *http.Request) {
+func (mu *musicHandler) chart(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	var ctx = context.Background()
 	defer func() {
 		if err != nil {
-			err = helper.WriteJsonToResponse(writer, err.Error())
+			err = helper.WriteJsonToResponse(w, err.Error())
 			if err != nil {
-				fmt.Println(writer, err.Error())
+				fmt.Println(w, err.Error())
 			}
 		}
 	}()
-	vars := mux.Vars(req)
+	vars := mux.Vars(r)
 	var sortTo = vars["sortto"]
 	chart, err := mu.usecase.ChartReq(ctx, sortTo)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if chart != nil {
-		err = helper.WriteJsonToResponse(writer, chart)
+		err = helper.WriteJsonToResponse(w, chart)
 		if err != nil {
 			log.Println(err)
 		}
 		return
 	}
 	if chart == nil && err == nil {
-		writer.WriteHeader(http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
 		err = errors.New("empty response")
 		return
 	}
-	writer.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusBadRequest)
 }
 
-func (mu *musicHandler) artist(writer http.ResponseWriter, req *http.Request) {
+func (mu *musicHandler) artist(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	defer func() {
 		if err != nil {
-			err = helper.WriteJsonToResponse(writer, err.Error())
+			err = helper.WriteJsonToResponse(w, err.Error())
 			if err != nil {
-				fmt.Println(writer, err.Error())
+				fmt.Println(w, err.Error())
 			}
 		}
 	}()
-	vars := mux.Vars(req)
+	vars := mux.Vars(r)
 	var artistV = vars["artist"]
 	var ctx = context.Background()
 	tracks, err := mu.usecase.ArtistReq(ctx, artistV)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if tracks != nil {
-		err = helper.WriteJsonToResponse(writer, tracks)
+		err = helper.WriteJsonToResponse(w, tracks)
 		if err != nil {
 			log.Println(err)
 		}
 		return
 	}
-	writer.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusBadRequest)
 
 }
-func (mu *musicHandler) genre(writer http.ResponseWriter, req *http.Request) {
+func (mu *musicHandler) genre(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	defer func() {
 		if err != nil {
-			err = helper.WriteJsonToResponse(writer, err.Error())
+			err = helper.WriteJsonToResponse(w, err.Error())
 			if err != nil {
-				fmt.Println(writer, err.Error())
+				fmt.Println(w, err.Error())
 			}
 		}
 	}()
-	vars := mux.Vars(req)
+	vars := mux.Vars(r)
 	var genre = vars["genre"]
 	var ctx = context.Background()
 	tracks, err := mu.usecase.GenreReq(ctx, genre)
 	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if tracks != nil {
-		err = helper.WriteJsonToResponse(writer, tracks)
+		err = helper.WriteJsonToResponse(w, tracks)
 		if err != nil {
 			log.Println(err)
 		}
 		return
 	}
-	writer.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusBadRequest)
 
 }
 
-func (mu *musicHandler) track(writer http.ResponseWriter, req *http.Request) {
+func (mu *musicHandler) track(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	var value bool
 	defer func() {
 
 		if err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			err = helper.WriteJsonToResponse(writer, err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			err = helper.WriteJsonToResponse(w, err.Error())
 		}
 		if value == false {
-			writer.WriteHeader(http.StatusBadRequest)
-			err = helper.WriteJsonToResponse(writer, "Bad request")
+			w.WriteHeader(http.StatusBadRequest)
+			err = helper.WriteJsonToResponse(w, "Bad request")
 			if err != nil {
-				fmt.Println(writer, err.Error())
+				fmt.Println(w, err.Error())
 			}
 		}
 
 	}()
-	vars := mux.Vars(req)
+	vars := mux.Vars(r)
 
 	var trackV = vars["track"]
 	var artistV = vars["artist"]
 	var ctx = context.Background()
 	tracks, value, err := mu.usecase.TrackReq(ctx, trackV, artistV)
 	if err == nil && value == true {
-		err = helper.WriteJsonToResponse(writer, tracks)
+		err = helper.WriteJsonToResponse(w, tracks)
 	}
 	return
 }

@@ -17,6 +17,12 @@ func NewTrackHandler(usecase elastic.UseCase) *elasticHandler {
 		usecase: usecase,
 	}
 }
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  512,
+	WriteBufferSize: 512,
+}
+
 func (eh *elasticHandler) WsHandler(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -37,9 +43,4 @@ func (eh *elasticHandler) WsHandler(next http.Handler) http.Handler {
 		return
 	})
 
-}
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  512,
-	WriteBufferSize: 512,
 }

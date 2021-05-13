@@ -8,19 +8,19 @@ import (
 	"net/http"
 )
 
-type UserHandler struct {
+type userHandler struct {
 	usecase user.UseCase
 }
 
 func UserHandlers(router *mux.Router, tokenUC user.UseCase) {
-	UserH := UserHandler{
+	UserH := userHandler{
 		usecase: tokenUC,
 	}
 
 	router.HandleFunc("/api/login/{name}", UserH.login).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/api/refresh", UserH.refresh).Methods(http.MethodGet, http.MethodOptions)
 }
-func (uh *UserHandler) refresh(w http.ResponseWriter, r *http.Request) {
+func (uh *userHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	rToken := r.Header.Get("refresh")
 	tokens, err := uh.usecase.RefreshToken(r.Context(), rToken)
 	if err != nil {
@@ -33,7 +33,7 @@ func (uh *UserHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
-func (uh *UserHandler) login(w http.ResponseWriter, r *http.Request) {
+func (uh *userHandler) login(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	user := vars["name"]
 	if user == "" {

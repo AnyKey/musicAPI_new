@@ -22,7 +22,7 @@ func New(es *elasticsearch.Client) *Repository {
 	}
 }
 
-func (repo Repository) ElasticAdd(tracks []model.TrackSelect) error {
+func (repo *Repository) ElasticAdd(tracks []model.TrackSelect) error {
 	// Build the request body.
 	if tracks == nil {
 		return nil
@@ -63,7 +63,7 @@ func (repo Repository) ElasticAdd(tracks []model.TrackSelect) error {
 
 	return nil
 }
-func (repo Repository) ElasticGet(tracks []model.TrackSelect) bool {
+func (repo *Repository) ElasticGet(tracks []model.TrackSelect) bool {
 	var buf bytes.Buffer
 	var r map[string]interface{}
 	query := map[string]interface{}{

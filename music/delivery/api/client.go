@@ -9,8 +9,7 @@ import (
 	"time"
 )
 
-type Delivery struct {
-}
+type Delivery struct{}
 
 func New() *Delivery {
 	return &Delivery{}

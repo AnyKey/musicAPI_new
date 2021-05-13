@@ -15,7 +15,7 @@ func New(ch *amqp.Channel) *Delivery {
 	}
 }
 func (repo *Delivery) NewQueue() amqp.Queue {
-	q, err := repo.Chan.QueueDeclare(
+	queue, err := repo.Chan.QueueDeclare(
 		"main_queue", // name
 		false,        // durable
 		false,        // delete when unused
@@ -26,14 +26,14 @@ func (repo *Delivery) NewQueue() amqp.Queue {
 	if err != nil {
 		log.Println(err)
 	}
-	return q
+	return queue
 }
-func (repo *Delivery) PushToChan(body []byte, q amqp.Queue) error {
+func (repo *Delivery) PushToChan(body []byte, queue amqp.Queue) error {
 	err := repo.Chan.Publish(
-		"",     // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
+		"",         // exchange
+		queue.Name, // routing key
+		false,      // mandatory
+		false,      // immediate
 		amqp.Publishing{
 			ContentType: "text/plain",
 			Body:        []byte(body),

@@ -20,7 +20,7 @@ func New(conn *sql.DB) *Repository {
 	}
 }
 
-func (repo Repository) GetTracks(track string, artist string) ([]model.TrackSelect, error) {
+func (repo *Repository) GetTracks(track string, artist string) ([]model.TrackSelect, error) {
 
 	var trackList []model.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album  FROM track, artist, album "+
@@ -42,7 +42,7 @@ func (repo Repository) GetTracks(track string, artist string) ([]model.TrackSele
 	return trackList, nil
 }
 
-func (repo Repository) SetTracks(newTracks music.OwnTrack) error {
+func (repo *Repository) SetTracks(newTracks music.OwnTrack) error {
 	ctx := context.Background()
 	tx, err := repo.Conn.BeginTx(ctx, nil)
 	if err != nil {
@@ -153,7 +153,7 @@ func (repo Repository) SetTracks(newTracks music.OwnTrack) error {
 	return nil
 }
 
-func (repo Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error) {
+func (repo *Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error) {
 
 	var trackList []model.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album "+
@@ -179,7 +179,7 @@ func (repo Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error)
 	return trackList, nil
 }
 
-func (repo Repository) GetArtistTracks(artist string) ([]model.TrackSelect, error) {
+func (repo *Repository) GetArtistTracks(artist string) ([]model.TrackSelect, error) {
 
 	var trackList []model.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album  FROM track, artist, album "+
@@ -204,7 +204,7 @@ func (repo Repository) GetArtistTracks(artist string) ([]model.TrackSelect, erro
 	return trackList, nil
 }
 
-func (repo Repository) GetChart(sortTo string) ([]music.ChartSelect, error) {
+func (repo *Repository) GetChart(sortTo string) ([]music.ChartSelect, error) {
 
 	var trackList []music.ChartSelect
 	var querySql string
