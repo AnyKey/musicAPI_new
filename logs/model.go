@@ -13,7 +13,7 @@ type LogBody struct {
 type UseCase interface {
 	QueueAppend(myToken string, addr string) error
 }
-type Repository interface {
+type Delivery interface {
 	NewQueue() amqp.Queue
 	PushToChan(body []byte, q amqp.Queue) error
 }

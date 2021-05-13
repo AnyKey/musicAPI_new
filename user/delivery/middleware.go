@@ -1,7 +1,7 @@
 package delivery
 
 import (
-	"musicAPI/client"
+	"musicAPI/helper"
 	"musicAPI/user"
 	"net/http"
 	"strings"
@@ -37,7 +37,7 @@ func (th *userMiddleHandler) UserMiddleware(next http.Handler) http.Handler {
 			}
 		}
 		w.WriteHeader(http.StatusUnauthorized)
-		_ = client.WriteJsonToResponse(w, "Unauthorized")
+		_ = helper.WriteJsonToResponse(w, "Unauthorized")
 	})
 
 }

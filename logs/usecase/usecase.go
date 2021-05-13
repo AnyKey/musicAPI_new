@@ -9,11 +9,11 @@ import (
 )
 
 type logsUseCase struct {
-	RabbitRepo logs.Repository
+	RabbitDeli logs.Delivery
 }
 
-func New(rabbitRepo logs.Repository) logs.UseCase {
-	return &logsUseCase{RabbitRepo: rabbitRepo}
+func New(rabbitDeli logs.Delivery) logs.UseCase {
+	return &logsUseCase{RabbitDeli: rabbitDeli}
 }
 
 func (lu *logsUseCase) QueueAppend(myToken string, addr string) error {
@@ -25,7 +25,7 @@ func (lu *logsUseCase) QueueAppend(myToken string, addr string) error {
 		return err
 	}
 	user := (claims["name"]).(string)
-	queue := lu.RabbitRepo.NewQueue()
+	queue := lu.RabbitDeli.NewQueue()
 	body := logs.LogBody{
 		Name:   user,
 		Action: addr,
@@ -35,7 +35,7 @@ func (lu *logsUseCase) QueueAppend(myToken string, addr string) error {
 	if err != nil {
 		log.Println(err)
 	}
-	err = lu.RabbitRepo.PushToChan(bytes, queue)
+	err = lu.RabbitDeli.PushToChan(bytes, queue)
 	if err != nil {
 		return err
 	}

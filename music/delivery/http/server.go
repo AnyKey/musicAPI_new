@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
-	"musicAPI/client"
+	"musicAPI/helper"
 	"musicAPI/music"
 	"net/http"
 )
@@ -32,13 +32,13 @@ func (mu *musicHandler) album(writer http.ResponseWriter, req *http.Request) {
 	result, err := mu.usecase.AlbumInfoRes(ctx, album, artist)
 	if err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
-		err = client.WriteJsonToResponse(writer, err.Error())
+		err = helper.WriteJsonToResponse(writer, err.Error())
 		if err != nil {
 			log.Println(err.Error())
 		}
 	}
 	if result != nil {
-		err = client.WriteJsonToResponse(writer, result)
+		err = helper.WriteJsonToResponse(writer, result)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -52,7 +52,7 @@ func (mu *musicHandler) chart(writer http.ResponseWriter, req *http.Request) {
 	var ctx = context.Background()
 	defer func() {
 		if err != nil {
-			err = client.WriteJsonToResponse(writer, err.Error())
+			err = helper.WriteJsonToResponse(writer, err.Error())
 			if err != nil {
 				fmt.Println(writer, err.Error())
 			}
@@ -66,7 +66,7 @@ func (mu *musicHandler) chart(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if chart != nil {
-		err = client.WriteJsonToResponse(writer, chart)
+		err = helper.WriteJsonToResponse(writer, chart)
 		if err != nil {
 			log.Println(err)
 		}
@@ -85,7 +85,7 @@ func (mu *musicHandler) artist(writer http.ResponseWriter, req *http.Request) {
 	var err error
 	defer func() {
 		if err != nil {
-			err = client.WriteJsonToResponse(writer, err.Error())
+			err = helper.WriteJsonToResponse(writer, err.Error())
 			if err != nil {
 				fmt.Println(writer, err.Error())
 			}
@@ -100,7 +100,7 @@ func (mu *musicHandler) artist(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if tracks != nil {
-		err = client.WriteJsonToResponse(writer, tracks)
+		err = helper.WriteJsonToResponse(writer, tracks)
 		if err != nil {
 			log.Println(err)
 		}
@@ -114,7 +114,7 @@ func (mu *musicHandler) genre(writer http.ResponseWriter, req *http.Request) {
 	var err error
 	defer func() {
 		if err != nil {
-			err = client.WriteJsonToResponse(writer, err.Error())
+			err = helper.WriteJsonToResponse(writer, err.Error())
 			if err != nil {
 				fmt.Println(writer, err.Error())
 			}
@@ -129,7 +129,7 @@ func (mu *musicHandler) genre(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if tracks != nil {
-		err = client.WriteJsonToResponse(writer, tracks)
+		err = helper.WriteJsonToResponse(writer, tracks)
 		if err != nil {
 			log.Println(err)
 		}
@@ -147,11 +147,11 @@ func (mu *musicHandler) track(writer http.ResponseWriter, req *http.Request) {
 
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			err = client.WriteJsonToResponse(writer, err.Error())
+			err = helper.WriteJsonToResponse(writer, err.Error())
 		}
 		if value == false {
 			writer.WriteHeader(http.StatusBadRequest)
-			err = client.WriteJsonToResponse(writer, "Bad request")
+			err = helper.WriteJsonToResponse(writer, "Bad request")
 			if err != nil {
 				fmt.Println(writer, err.Error())
 			}
@@ -165,7 +165,7 @@ func (mu *musicHandler) track(writer http.ResponseWriter, req *http.Request) {
 	var ctx = context.Background()
 	tracks, value, err := mu.usecase.TrackReq(ctx, trackV, artistV)
 	if err == nil && value == true {
-		err = client.WriteJsonToResponse(writer, tracks)
+		err = helper.WriteJsonToResponse(writer, tracks)
 	}
 	return
 }

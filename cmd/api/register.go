@@ -4,9 +4,25 @@ import (
 	"database/sql"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
-	"github.com/vrischmann/envconfig"
-	"log"
+	"musicAPI/client"
+	elasticM "musicAPI/elastic/delivery"
+	elasticRep "musicAPI/elastic/repository/elastic"
+	elasticUseCase "musicAPI/elastic/usecase"
+	logsM "musicAPI/logs/delivery"
+	"musicAPI/logs/delivery/rabbitmq"
+	logsUseCase "musicAPI/logs/usecase"
+	"musicAPI/music/delivery/api"
+	musicH "musicAPI/music/delivery/http"
+	esMusicRep "musicAPI/music/repository/elastic"
+	dbMusicRep "musicAPI/music/repository/postgres"
+	redisMusicRep "musicAPI/music/repository/redis"
+	musicUseCase "musicAPI/music/usecase"
+	userM "musicAPI/user/delivery"
+	userH "musicAPI/user/delivery/http"
+	redisUserRep "musicAPI/user/repository/redis"
+	userUseCase "musicAPI/user/usecase"
 )
 
 type config struct {
@@ -14,61 +30,60 @@ type config struct {
 	HttpAddress string `envconfig:"HTTP_ADDRESS"`
 	RedisPort   string `envconfig:"REDIS_PORT"`
 	QueuePort   string `envconfig:"QUEUE_PORT"`
-}
-type register struct {
-	dbConn  *sql.DB
-	rConn   *redis.Client
-	qConn   *amqp.Channel
-	esConn  *elasticsearch.Client
-	address string
+	ElasticName string `envconfig:"ELASTIC_NAME"`
+	ElasticPass string `envconfig:"ELASTIC_PASS"`
 }
 
-func NewReg() *register {
-	var sConfig config
-	err := envconfig.Init(&sConfig)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	connQueue, err := amqp.Dial(sConfig.QueuePort)
-	failOnError(err, "Failed to connect to RabbitMQ")
-	//	defer connQueue.Close()
-	ch, err := connQueue.Channel()
-	failOnError(err, "Failed to open a channel")
-	//	defer ch.Close()
-	es, err := elasticsearch.NewClient(elasticsearch.Config{
-		Username: "elastic",
-		Password: "changeme",
-	})
-	res, err := es.Info()
-	if err != nil {
-		log.Fatalf("Error getting response: %s", err)
-	}
-	defer res.Body.Close()
-	rdb := redis.NewClient(&redis.Options{
-		Addr: sConfig.RedisPort,
-	})
-	conn := mustDBConn(sConfig.Database)
-	return &register{
-		dbConn:  conn,
-		rConn:   rdb,
-		qConn:   ch,
-		esConn:  es,
-		address: sConfig.HttpAddress,
-	}
-}
+func register(router *mux.Router, conf config) {
+	queueChan := initRabbitMq(conf.QueuePort)
+	elasticClient := initElasticSearch(conf.ElasticName, conf.ElasticPass)
+	redisClient := initRedis(conf.RedisPort)
+	postgres := initPostgres(conf.Database)
 
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Printf("%s: %s", msg, err)
-	}
+	// user
+	userRegister(router, redisClient)
+
+	// music
+	musicRegister(router, postgres, redisClient, elasticClient)
+
+	//logs
+	logsRegister(router, queueChan)
+
+	//es
+	elasticRegister(router, elasticClient)
+
+	//other mdws
+	router.Use(mux.CORSMethodMiddleware(router))
+
+	// render
+	client.Template(router)
 }
-func mustDBConn(database string) *sql.DB {
-	db, err := sql.Open("postgres", database)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	if db.Ping() != nil {
-		log.Fatalln(err)
-	}
-	return db
+func userRegister(router *mux.Router, redisConn *redis.Client) {
+	userDB := redisUserRep.New(redisConn)
+	uc := userUseCase.New(userDB)
+	userH.UserHandlers(router, uc)
+	router.Use(userM.NewUserHandler(uc).UserMiddleware)
+}
+func musicRegister(router *mux.Router, postgres *sql.DB, redis *redis.Client, elastic *elasticsearch.Client) {
+	musicRedis := redisMusicRep.New(redis)
+	musicDB := dbMusicRep.New(postgres)
+	musicApi := api.New()
+	musicElastic := esMusicRep.New(elastic)
+	uc := musicUseCase.New(
+		musicRedis,
+		musicDB,
+		musicApi,
+		musicElastic,
+	)
+	musicH.MusicHandlers(router, uc)
+}
+func logsRegister(router *mux.Router, queue *amqp.Channel) {
+	logsRab := rabbitmq.New(queue)
+	uc := logsUseCase.New(logsRab)
+	router.Use(logsM.NewLogHandler(uc).LogMiddleware)
+}
+func elasticRegister(router *mux.Router, elastic *elasticsearch.Client) {
+	elasticEs := elasticRep.New(elastic)
+	uc := elasticUseCase.New(elasticEs)
+	router.Use(elasticM.NewTrackHandler(uc).WsHandler)
 }

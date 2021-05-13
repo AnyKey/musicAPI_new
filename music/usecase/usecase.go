@@ -111,6 +111,7 @@ func (muc *musicUseCase) GenreReq(ctx context.Context, genre string) ([]model.Tr
 
 func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist string) ([]model.TrackSelect, bool, error) {
 	var value bool
+	var result []model.TrackSelect
 	tracks := muc.MusicRedisRepo.GetTracksRedis(ctx, track, artist)
 	if tracks != nil {
 		if muc.MusicEsRepo.ElasticGet(tracks) != true {
@@ -129,29 +130,43 @@ func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist stri
 	bytes, err := json.Marshal(tracks)
 	if err == nil && tracks != nil {
 		muc.MusicRedisRepo.SetTracksRedis(ctx, track, artist, bytes)
-	}
-	re, err := muc.MusicApiRepo.TrackSearchReq(track, artist)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	if re == nil {
-		value = false
-		return nil, value, err
+		value = true
 	}
 	if tracks != nil {
 		if tracks[0].Album == "" || tracks[0].Name == "" || tracks[0].Artist == "" {
 			value = false
 		}
+		if tracks[0].Album != "" && tracks[0].Name != "" && tracks[0].Artist != "" {
+			return tracks, value, nil
+		}
 	}
-	if re != nil {
-		go func() {
-			err = muc.MusicPostgresRepo.SetTracks(*re)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-		}()
+	if tracks == nil {
+		re, err := muc.MusicApiRepo.TrackSearchReq(track, artist)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		if re == nil {
+			value = false
+			return nil, value, err
+		}
+		if re != nil {
+			go func() {
+				err = muc.MusicPostgresRepo.SetTracks(*re)
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+			}()
+			value = true
+		}
+		result = structConv(re)
+
 	}
-	result := structConv(re)
+	if result == nil {
+		if tracks[0].Album == "" || tracks[0].Name == "" || tracks[0].Artist == "" {
+			value = false
+			return nil, value, err
+		}
+	}
 	return result, value, nil
 }
 func structConv(trackList *music.OwnTrack) []model.TrackSelect {

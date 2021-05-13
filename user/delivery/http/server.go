@@ -3,7 +3,7 @@ package http
 import (
 	"github.com/gorilla/mux"
 	"log"
-	"musicAPI/client"
+	"musicAPI/helper"
 	"musicAPI/user"
 	"net/http"
 )
@@ -25,9 +25,9 @@ func (uh *UserHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	tokens, err := uh.usecase.RefreshToken(r.Context(), rToken)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		err = client.WriteJsonToResponse(w, err.Error())
+		err = helper.WriteJsonToResponse(w, err.Error())
 	}
-	err = client.WriteJsonToResponse(w, tokens)
+	err = helper.WriteJsonToResponse(w, tokens)
 	if err != nil {
 		log.Println(err)
 	}
@@ -43,13 +43,13 @@ func (uh *UserHandler) login(w http.ResponseWriter, r *http.Request) {
 	tokens, err := uh.usecase.NewToken(r.Context(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		err = client.WriteJsonToResponse(w, err.Error())
+		err = helper.WriteJsonToResponse(w, err.Error())
 		if err != nil {
 			log.Println(err)
 		}
 		return
 	}
-	err = client.WriteJsonToResponse(w, tokens)
+	err = helper.WriteJsonToResponse(w, tokens)
 	if err != nil {
 		log.Println(err)
 	}

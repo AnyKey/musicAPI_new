@@ -5,16 +5,16 @@ import (
 	"log"
 )
 
-type Repository struct {
+type Delivery struct {
 	Chan *amqp.Channel
 }
 
-func New(ch *amqp.Channel) *Repository {
-	return &Repository{
+func New(ch *amqp.Channel) *Delivery {
+	return &Delivery{
 		Chan: ch,
 	}
 }
-func (repo *Repository) NewQueue() amqp.Queue {
+func (repo *Delivery) NewQueue() amqp.Queue {
 	q, err := repo.Chan.QueueDeclare(
 		"main_queue", // name
 		false,        // durable
@@ -28,7 +28,7 @@ func (repo *Repository) NewQueue() amqp.Queue {
 	}
 	return q
 }
-func (repo *Repository) PushToChan(body []byte, q amqp.Queue) error {
+func (repo *Delivery) PushToChan(body []byte, q amqp.Queue) error {
 	err := repo.Chan.Publish(
 		"",     // exchange
 		q.Name, // routing key

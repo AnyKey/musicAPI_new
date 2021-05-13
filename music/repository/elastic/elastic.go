@@ -96,7 +96,6 @@ func (repo Repository) ElasticGet(tracks []model.TrackSelect) bool {
 		var checkVal interface{}
 		for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
 			checkVal = hit.(map[string]interface{})["_source"]
-			log.Println(hit.(map[string]interface{})["_source"])
 			break
 		}
 		if checkVal != nil {
