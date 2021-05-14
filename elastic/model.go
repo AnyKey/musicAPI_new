@@ -2,11 +2,10 @@ package elastic
 
 import (
 	"github.com/gorilla/websocket"
-	"musicAPI/model"
 )
 
-type Repository interface {
-	FullTextSearch(resData SocketSend) ([]model.TrackSelect, error)
+type Delivery interface {
+	FullTextSearch(SocketSend) ([]TrackSelect, error)
 }
 type SocketSend struct {
 	Track       string `json:"track"`
@@ -16,5 +15,11 @@ type SocketSend struct {
 }
 
 type UseCase interface {
-	WsSending(conn *websocket.Conn)
+	WsSending(*websocket.Conn)
+}
+
+type TrackSelect struct {
+	Name   string `db:"track" json:"name"`
+	Artist string `db:"artist" json:"artist"`
+	Album  string `db:"album" json:"album"`
 }

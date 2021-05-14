@@ -1,9 +1,10 @@
 package http
 
 import (
+	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"log"
-	"musicAPI/helper"
 	"musicAPI/user"
 	"net/http"
 )
@@ -25,9 +26,9 @@ func (uh *userHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	tokens, err := uh.usecase.RefreshToken(r.Context(), rToken)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		err = helper.WriteJsonToResponse(w, err.Error())
+		err = writeJsonToResponse(w, err.Error())
 	}
-	err = helper.WriteJsonToResponse(w, tokens)
+	err = writeJsonToResponse(w, tokens)
 	if err != nil {
 		log.Println(err)
 	}
@@ -43,14 +44,28 @@ func (uh *userHandler) login(w http.ResponseWriter, r *http.Request) {
 	tokens, err := uh.usecase.NewToken(r.Context(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		err = helper.WriteJsonToResponse(w, err.Error())
+		err = writeJsonToResponse(w, err.Error())
 		if err != nil {
 			log.Println(err)
 		}
 		return
 	}
-	err = helper.WriteJsonToResponse(w, tokens)
+	err = writeJsonToResponse(w, tokens)
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func writeJsonToResponse(rw http.ResponseWriter, value interface{}) error {
+	bytes, err := json.Marshal(value)
+	if err != nil {
+		return errors.Wrap(err, "error while marshal json")
+	}
+
+	_, err = rw.Write(bytes)
+	if err != nil {
+		return errors.Wrap(err, "error write response")
+	}
+
+	return nil
 }

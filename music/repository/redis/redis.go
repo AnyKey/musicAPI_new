@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-redis/redis/v8"
-	"musicAPI/model"
 	"musicAPI/music"
 	"time"
 )
@@ -19,8 +18,8 @@ func New(redis *redis.Client) *Repository {
 	}
 }
 
-func (repo *Repository) GetTracksRedis(ctx context.Context, track string, artist string) []model.TrackSelect {
-	var trackList []model.TrackSelect
+func (repo *Repository) GetTracksRedis(ctx context.Context, track string, artist string) []music.TrackSelect {
+	var trackList []music.TrackSelect
 	res := repo.Redis.Get(ctx, "Track:"+track+"_Artist:"+artist)
 	if res.Err() != nil {
 		return nil
@@ -36,8 +35,8 @@ func (repo *Repository) GetTracksRedis(ctx context.Context, track string, artist
 	return trackList
 }
 
-func (repo *Repository) GetGenreRedis(ctx context.Context, genre string) []model.TrackSelect {
-	var trackList []model.TrackSelect
+func (repo *Repository) GetGenreRedis(ctx context.Context, genre string) []music.TrackSelect {
+	var trackList []music.TrackSelect
 	res := repo.Redis.Get(ctx, "Genre:"+genre)
 	if res.Err() != nil {
 		return nil
@@ -53,8 +52,8 @@ func (repo *Repository) GetGenreRedis(ctx context.Context, genre string) []model
 	return trackList
 }
 
-func (repo *Repository) GetArtistRedis(ctx context.Context, artist string) []model.TrackSelect {
-	var trackList []model.TrackSelect
+func (repo *Repository) GetArtistRedis(ctx context.Context, artist string) []music.TrackSelect {
+	var trackList []music.TrackSelect
 	res := repo.Redis.Get(ctx, "Artist:"+artist)
 	if res.Err() != nil {
 		return nil

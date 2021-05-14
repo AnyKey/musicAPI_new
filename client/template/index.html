@@ -44,7 +44,7 @@
 </body>
 <script type="text/javascript">
   let url = "ws://localhost:8001/ws"
-  let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjA4Mjc0MTcsIm5hbWUiOiJOZXciLCJyb290Ijp0cnVlfQ.uEpJHlgHTjWrDtWWP6BBYca26MWphbkCJT3ihzw0-PI";
+  let token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MjA5OTk5NzYsIm5hbWUiOiJOZXciLCJyb290Ijp0cnVlfQ.-ZPd0upfqHI5F2wTHoyi7zGLk8tKmuic4NHvGcZSvxQ";
   webSocket = new WebSocket(url);
   webSocket.onopen = () => webSocket.send(token);
   webSocket.onmessage = function (event) {

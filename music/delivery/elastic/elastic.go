@@ -8,26 +8,26 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/pkg/errors"
 	"log"
-	"musicAPI/model"
+	"musicAPI/music"
 	"strings"
 )
 
-type Repository struct {
+type Delivery struct {
 	Es *elasticsearch.Client
 }
 
-func New(es *elasticsearch.Client) *Repository {
-	return &Repository{
+func New(es *elasticsearch.Client) *Delivery {
+	return &Delivery{
 		Es: es,
 	}
 }
 
-func (repo *Repository) ElasticAdd(tracks []model.TrackSelect) error {
+func (d *Delivery) ElasticAdd(tracks []music.TrackSelect) error {
 	// Build the request body.
 	if tracks == nil {
 		return nil
 	}
-	track := model.TrackSelect{tracks[0].Name, tracks[0].Artist, tracks[0].Album}
+	track := music.TrackSelect{tracks[0].Name, tracks[0].Artist, tracks[0].Album}
 	bytes, err := json.Marshal(track)
 	if err != nil {
 		return errors.Wrap(err, "marshal elastic tracks")
@@ -42,7 +42,7 @@ func (repo *Repository) ElasticAdd(tracks []model.TrackSelect) error {
 	}
 
 	// Perform the request with the client.
-	res, err := req.Do(context.Background(), repo.Es)
+	res, err := req.Do(context.Background(), d.Es)
 	if err != nil {
 		log.Println("Error getting response: ", err)
 	}
@@ -63,7 +63,7 @@ func (repo *Repository) ElasticAdd(tracks []model.TrackSelect) error {
 
 	return nil
 }
-func (repo *Repository) ElasticGet(tracks []model.TrackSelect) bool {
+func (d *Delivery) ElasticGet(tracks []music.TrackSelect) bool {
 	var buf bytes.Buffer
 	var r map[string]interface{}
 	query := map[string]interface{}{
@@ -78,11 +78,11 @@ func (repo *Repository) ElasticGet(tracks []model.TrackSelect) bool {
 	}
 
 	// Perform the search request.
-	res, err := repo.Es.Search(
-		repo.Es.Search.WithContext(context.Background()),
-		repo.Es.Search.WithIndex("tracks"),
-		repo.Es.Search.WithBody(&buf),
-		repo.Es.Search.WithTrackTotalHits(true),
+	res, err := d.Es.Search(
+		d.Es.Search.WithContext(context.Background()),
+		d.Es.Search.WithIndex("tracks"),
+		d.Es.Search.WithBody(&buf),
+		d.Es.Search.WithTrackTotalHits(true),
 	)
 	if err != nil || res.StatusCode == 404 {
 		log.Println("Error getting response: ", err)

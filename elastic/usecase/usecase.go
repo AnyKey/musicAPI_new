@@ -9,10 +9,10 @@ import (
 )
 
 type elasticUseCase struct {
-	ElasticRepo elastic.Repository
+	ElasticRepo elastic.Delivery
 }
 
-func New(elasticRepo elastic.Repository) elastic.UseCase {
+func New(elasticRepo elastic.Delivery) elastic.UseCase {
 	return &elasticUseCase{ElasticRepo: elasticRepo}
 }
 func (euc *elasticUseCase) WsSending(conn *websocket.Conn) {

@@ -7,21 +7,20 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 	"log"
 	"musicAPI/elastic"
-	"musicAPI/model"
 	"strings"
 )
 
-type Repository struct {
+type Delivery struct {
 	Es *elasticsearch.Client
 }
 
-func New(es *elasticsearch.Client) *Repository {
-	return &Repository{
+func New(es *elasticsearch.Client) *Delivery {
+	return &Delivery{
 		Es: es,
 	}
 }
 
-func (repo *Repository) FullTextSearch(resData elastic.SocketSend) ([]model.TrackSelect, error) {
+func (d *Delivery) FullTextSearch(resData elastic.SocketSend) ([]elastic.TrackSelect, error) {
 	var nameValue, artistValue, albumValue string
 
 	if resData.NameCheck == true {
@@ -40,7 +39,7 @@ func (repo *Repository) FullTextSearch(resData elastic.SocketSend) ([]model.Trac
 		albumValue = ""
 	}
 	var q map[string]interface{}
-	var trackList []model.TrackSelect
+	var trackList []elastic.TrackSelect
 
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Username: "elastic",
@@ -108,7 +107,7 @@ func (repo *Repository) FullTextSearch(resData elastic.SocketSend) ([]model.Trac
 
 		for _, hit := range q["hits"].(map[string]interface{})["hits"].([]interface{}) {
 
-			trackList = append(trackList, model.TrackSelect{
+			trackList = append(trackList, elastic.TrackSelect{
 				Name:   hit.(map[string]interface{})["_source"].(map[string]interface{})["name"].(string),
 				Artist: hit.(map[string]interface{})["_source"].(map[string]interface{})["artist"].(string),
 				Album:  hit.(map[string]interface{})["_source"].(map[string]interface{})["album"].(string),

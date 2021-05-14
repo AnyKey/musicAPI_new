@@ -5,21 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"musicAPI/model"
 	"musicAPI/music"
 )
 
 type musicUseCase struct {
 	MusicRedisRepo    music.RedisRepository
 	MusicPostgresRepo music.PostgresRepository
-	MusicApiRepo      music.Delivery
-	MusicEsRepo       music.ElasticRepository
+	MusicApiRepo      music.ApiDelivery
+	MusicEsRepo       music.ElasticDelivery
 }
 
 func New(musicRedisRepo music.RedisRepository,
 	musicPostgresRepo music.PostgresRepository,
-	musicApiRepo music.Delivery,
-	musicEsRepo music.ElasticRepository) music.UseCase {
+	musicApiRepo music.ApiDelivery,
+	musicEsRepo music.ElasticDelivery) music.UseCase {
 	return &musicUseCase{
 		MusicRedisRepo:    musicRedisRepo,
 		MusicPostgresRepo: musicPostgresRepo,
@@ -65,7 +64,7 @@ func (muc *musicUseCase) ChartReq(ctx context.Context, sortTo string) ([]music.C
 	return nil, nil
 }
 
-func (muc *musicUseCase) ArtistReq(ctx context.Context, artist string) ([]model.TrackSelect, error) {
+func (muc *musicUseCase) ArtistReq(ctx context.Context, artist string) ([]music.TrackSelect, error) {
 	tracks := muc.MusicRedisRepo.GetArtistRedis(ctx, artist)
 	if tracks != nil {
 		return tracks, nil
@@ -87,7 +86,7 @@ func (muc *musicUseCase) ArtistReq(ctx context.Context, artist string) ([]model.
 	return nil, nil
 }
 
-func (muc *musicUseCase) GenreReq(ctx context.Context, genre string) ([]model.TrackSelect, error) {
+func (muc *musicUseCase) GenreReq(ctx context.Context, genre string) ([]music.TrackSelect, error) {
 	tracks := muc.MusicRedisRepo.GetGenreRedis(ctx, genre)
 	if tracks != nil {
 		return tracks, nil
@@ -109,9 +108,9 @@ func (muc *musicUseCase) GenreReq(ctx context.Context, genre string) ([]model.Tr
 	return nil, nil
 }
 
-func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist string) ([]model.TrackSelect, bool, error) {
+func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist string) ([]music.TrackSelect, bool, error) {
 	var value bool
-	var result []model.TrackSelect
+	var result []music.TrackSelect
 	tracks := muc.MusicRedisRepo.GetTracksRedis(ctx, track, artist)
 	if tracks != nil {
 		if muc.MusicEsRepo.ElasticGet(tracks) != true {
@@ -169,8 +168,8 @@ func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist stri
 	}
 	return result, value, nil
 }
-func structConv(trackList *music.OwnTrack) []model.TrackSelect {
-	return []model.TrackSelect{{
+func structConv(trackList *music.OwnTrack) []music.TrackSelect {
+	return []music.TrackSelect{{
 		trackList.Name,
 		trackList.Album.Artist,
 		trackList.Album.Album,

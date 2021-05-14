@@ -15,6 +15,6 @@ type UseCase interface {
 	RefreshToken(context.Context, string) (*Tokens, error)
 }
 type Repository interface {
-	GetToken(ctx context.Context, user string) *Tokens
-	SetToken(ctx context.Context, user string, tokens Tokens) error
+	GetToken(context.Context, string) *Tokens
+	SetToken(context.Context, string, Tokens) error
 }

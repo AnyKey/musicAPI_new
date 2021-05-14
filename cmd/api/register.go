@@ -8,14 +8,13 @@ import (
 	"github.com/streadway/amqp"
 	"musicAPI/client"
 	elasticM "musicAPI/elastic/delivery"
-	elasticRep "musicAPI/elastic/repository/elastic"
+	elastic2 "musicAPI/elastic/delivery/elastic"
 	elasticUseCase "musicAPI/elastic/usecase"
 	logsM "musicAPI/logs/delivery"
 	"musicAPI/logs/delivery/rabbitmq"
 	logsUseCase "musicAPI/logs/usecase"
-	"musicAPI/music/delivery/api"
+	elastic3 "musicAPI/music/delivery/elastic"
 	musicH "musicAPI/music/delivery/http"
-	esMusicRep "musicAPI/music/repository/elastic"
 	dbMusicRep "musicAPI/music/repository/postgres"
 	redisMusicRep "musicAPI/music/repository/redis"
 	musicUseCase "musicAPI/music/usecase"
@@ -67,8 +66,8 @@ func userRegister(router *mux.Router, redisConn *redis.Client) {
 func musicRegister(router *mux.Router, postgres *sql.DB, redis *redis.Client, elastic *elasticsearch.Client) {
 	musicRedis := redisMusicRep.New(redis)
 	musicDB := dbMusicRep.New(postgres)
-	musicApi := api.New()
-	musicElastic := esMusicRep.New(elastic)
+	musicApi := musicH.New()
+	musicElastic := elastic3.New(elastic)
 	uc := musicUseCase.New(
 		musicRedis,
 		musicDB,
@@ -83,7 +82,7 @@ func logsRegister(router *mux.Router, queue *amqp.Channel) {
 	router.Use(logsM.NewLogHandler(uc).LogMiddleware)
 }
 func elasticRegister(router *mux.Router, elastic *elasticsearch.Client) {
-	elasticEs := elasticRep.New(elastic)
+	elasticEs := elastic2.New(elastic)
 	uc := elasticUseCase.New(elasticEs)
 	router.Use(elasticM.NewTrackHandler(uc).WsHandler)
 }

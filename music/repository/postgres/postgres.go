@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"log"
-	"musicAPI/model"
 	"musicAPI/music"
 )
 
@@ -20,9 +19,9 @@ func New(conn *sql.DB) *Repository {
 	}
 }
 
-func (repo *Repository) GetTracks(track string, artist string) ([]model.TrackSelect, error) {
+func (repo *Repository) GetTracks(track string, artist string) ([]music.TrackSelect, error) {
 
-	var trackList []model.TrackSelect
+	var trackList []music.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album  FROM track, artist, album "+
 		"WHERE track.artist_id = artist.id and track.album_id = album.id and track.name = $1 AND artist.name = $2", track, artist)
 	if err != nil {
@@ -31,7 +30,7 @@ func (repo *Repository) GetTracks(track string, artist string) ([]model.TrackSel
 	defer rows.Close()
 
 	for rows.Next() {
-		tl := model.TrackSelect{}
+		tl := music.TrackSelect{}
 		err := rows.Scan(&tl.Name, &tl.Artist, &tl.Album)
 		if err != nil {
 			return nil, errors.Wrap(err, "error Scan values")
@@ -153,9 +152,9 @@ func (repo *Repository) SetTracks(newTracks music.OwnTrack) error {
 	return nil
 }
 
-func (repo *Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error) {
+func (repo *Repository) GetGenreTracks(genre string) ([]music.TrackSelect, error) {
 
-	var trackList []model.TrackSelect
+	var trackList []music.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album "+
 		"FROM track, artist, album "+
 		"WHERE track.artist_id = artist.id and track.album_id = album.id and track.tag = $1", genre)
@@ -165,7 +164,7 @@ func (repo *Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error
 	defer rows.Close()
 
 	for rows.Next() {
-		tl := model.TrackSelect{}
+		tl := music.TrackSelect{}
 		err := rows.Scan(&tl.Name, &tl.Artist, &tl.Album)
 		if err != nil {
 			return nil, errors.Wrap(err, "error Scan values")
@@ -179,9 +178,9 @@ func (repo *Repository) GetGenreTracks(genre string) ([]model.TrackSelect, error
 	return trackList, nil
 }
 
-func (repo *Repository) GetArtistTracks(artist string) ([]model.TrackSelect, error) {
+func (repo *Repository) GetArtistTracks(artist string) ([]music.TrackSelect, error) {
 
-	var trackList []model.TrackSelect
+	var trackList []music.TrackSelect
 	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album  FROM track, artist, album "+
 		"WHERE track.artist_id = artist.id and track.album_id = album.id and artist.name = $1", artist)
 
@@ -191,7 +190,7 @@ func (repo *Repository) GetArtistTracks(artist string) ([]model.TrackSelect, err
 	defer rows.Close()
 
 	for rows.Next() {
-		tl := model.TrackSelect{}
+		tl := music.TrackSelect{}
 		err := rows.Scan(&tl.Name, &tl.Artist, &tl.Album)
 		if err != nil {
 			return nil, errors.Wrap(err, "error Scan values")

@@ -11,9 +11,9 @@ type LogBody struct {
 	Time   time.Time `json:"time"`
 }
 type UseCase interface {
-	QueueAppend(myToken string, addr string) error
+	QueueAppend(string, string) error
 }
 type Delivery interface {
 	NewQueue() amqp.Queue
-	PushToChan(body []byte, q amqp.Queue) error
+	PushToChan([]byte, amqp.Queue) error
 }

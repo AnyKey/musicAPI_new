@@ -1,7 +1,8 @@
 package delivery
 
 import (
-	"musicAPI/helper"
+	"encoding/json"
+	"github.com/pkg/errors"
 	"musicAPI/user"
 	"net/http"
 	"strings"
@@ -37,7 +38,21 @@ func (th *userMiddleHandler) UserMiddleware(next http.Handler) http.Handler {
 			}
 		}
 		w.WriteHeader(http.StatusUnauthorized)
-		_ = helper.WriteJsonToResponse(w, "Unauthorized")
+		_ = writeJsonToResponse(w, "Unauthorized")
 	})
 
+}
+
+func writeJsonToResponse(rw http.ResponseWriter, value interface{}) error {
+	bytes, err := json.Marshal(value)
+	if err != nil {
+		return errors.Wrap(err, "error while marshal json")
+	}
+
+	_, err = rw.Write(bytes)
+	if err != nil {
+		return errors.Wrap(err, "error write response")
+	}
+
+	return nil
 }

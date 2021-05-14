@@ -2,43 +2,47 @@ package music
 
 import (
 	"context"
-	"musicAPI/model"
 )
 
 type PostgresRepository interface {
-	GetTracks(track string, artist string) ([]model.TrackSelect, error)
-	SetTracks(newTracks OwnTrack) error
-	GetGenreTracks(genre string) ([]model.TrackSelect, error)
-	GetArtistTracks(artist string) ([]model.TrackSelect, error)
-	GetChart(sortTo string) ([]ChartSelect, error)
+	GetTracks(string, string) ([]TrackSelect, error)
+	SetTracks(OwnTrack) error
+	GetGenreTracks(string) ([]TrackSelect, error)
+	GetArtistTracks(string) ([]TrackSelect, error)
+	GetChart(string) ([]ChartSelect, error)
 }
 
 type RedisRepository interface {
-	GetTracksRedis(ctx context.Context, track string, artist string) []model.TrackSelect
-	SetTracksRedis(ctx context.Context, track string, artist string, bytes []byte)
-	GetGenreRedis(ctx context.Context, genre string) []model.TrackSelect
-	SetGenreRedis(ctx context.Context, genre string, bytes []byte)
-	GetArtistRedis(ctx context.Context, artist string) []model.TrackSelect
-	SetArtistRedis(ctx context.Context, artist string, bytes []byte)
-	GetChartRedis(ctx context.Context, sortTo string) []ChartSelect
-	SetChartRedis(ctx context.Context, sortTo string, bytes []byte)
-	GetAlbumRedis(ctx context.Context, album string, artist string) *Root
-	SetAlbumRedis(ctx context.Context, album string, artist string, bytes []byte)
+	GetTracksRedis(context.Context, string, string) []TrackSelect
+	SetTracksRedis(context.Context, string, string, []byte)
+	GetGenreRedis(context.Context, string) []TrackSelect
+	SetGenreRedis(context.Context, string, []byte)
+	GetArtistRedis(context.Context, string) []TrackSelect
+	SetArtistRedis(context.Context, string, []byte)
+	GetChartRedis(context.Context, string) []ChartSelect
+	SetChartRedis(context.Context, string, []byte)
+	GetAlbumRedis(context.Context, string, string) *Root
+	SetAlbumRedis(context.Context, string, string, []byte)
 }
-type Delivery interface {
-	AlbumInfoReq(album string, artist string) (*Root, error)
-	TrackSearchReq(track string, artist string) (*OwnTrack, error)
+type ApiDelivery interface {
+	AlbumInfoReq(string, string) (*Root, error)
+	TrackSearchReq(string, string) (*OwnTrack, error)
 }
 type UseCase interface {
-	ArtistReq(ctx context.Context, artist string) ([]model.TrackSelect, error)
-	GenreReq(ctx context.Context, genre string) ([]model.TrackSelect, error)
-	AlbumInfoRes(ctx context.Context, album string, artist string) (*Root, error)
-	ChartReq(ctx context.Context, sortTo string) ([]ChartSelect, error)
-	TrackReq(ctx context.Context, track string, artist string) ([]model.TrackSelect, bool, error)
+	ArtistReq(context.Context, string) ([]TrackSelect, error)
+	GenreReq(context.Context, string) ([]TrackSelect, error)
+	AlbumInfoRes(context.Context, string, string) (*Root, error)
+	ChartReq(context.Context, string) ([]ChartSelect, error)
+	TrackReq(context.Context, string, string) ([]TrackSelect, bool, error)
 }
-type ElasticRepository interface {
-	ElasticAdd(tracks []model.TrackSelect) error
-	ElasticGet(tracks []model.TrackSelect) bool
+type ElasticDelivery interface {
+	ElasticAdd([]TrackSelect) error
+	ElasticGet([]TrackSelect) bool
+}
+type TrackSelect struct {
+	Name   string `db:"track" json:"name"`
+	Artist string `db:"artist" json:"artist"`
+	Album  string `db:"album" json:"album"`
 }
 
 type ChartSelect struct {
