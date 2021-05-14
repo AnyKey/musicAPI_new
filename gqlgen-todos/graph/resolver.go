@@ -11,4 +11,5 @@ import (
 
 type Resolver struct {
 	todos []*model.Todo
+	rofls []*model.Rofl
 }

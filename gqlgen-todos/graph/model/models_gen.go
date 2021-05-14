@@ -2,9 +2,19 @@
 
 package model
 
+type NewRofl struct {
+	Description string `json:"description"`
+}
+
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
+}
+
+type Rofl struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type User struct {

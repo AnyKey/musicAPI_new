@@ -22,8 +22,21 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 	return todo, nil
 }
 
+func (r *mutationResolver) CreateRofl(ctx context.Context, input model.NewRofl) (*model.Rofl, error) {
+	rofl := &model.Rofl{
+		ID:          fmt.Sprintf("T%d", rand.Int()),
+		Description: input.Description,
+	}
+	r.rofls = append(r.rofls, rofl)
+	return rofl, nil
+}
+
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	return r.todos, nil
+}
+
+func (r *queryResolver) Rofls(ctx context.Context) ([]*model.Rofl, error) {
+	return r.rofls, nil
 }
 
 func (r *todoResolver) User(ctx context.Context, obj *model.Todo) (*model.User, error) {
