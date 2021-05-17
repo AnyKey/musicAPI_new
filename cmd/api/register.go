@@ -10,6 +10,9 @@ import (
 	elasticM "musicAPI/elastic/delivery"
 	elastic2 "musicAPI/elastic/delivery/elastic"
 	elasticUseCase "musicAPI/elastic/usecase"
+	graphH "musicAPI/graphql/delivery/graphquery"
+	graphRep "musicAPI/graphql/repository/postgres"
+	graphUseCase "musicAPI/graphql/usecase"
 	logsM "musicAPI/logs/delivery"
 	"musicAPI/logs/delivery/rabbitmq"
 	logsUseCase "musicAPI/logs/usecase"
@@ -45,13 +48,16 @@ func register(router *mux.Router, conf config) {
 	// music
 	musicRegister(router, postgres, redisClient, elasticClient)
 
-	//logs
+	// logs
 	logsRegister(router, queueChan)
 
-	//es
+	// es
 	elasticRegister(router, elasticClient)
 
-	//other mdws
+	// graphQl
+	graphRegister(postgres)
+
+	// other mdws
 	router.Use(mux.CORSMethodMiddleware(router))
 
 	// render
@@ -85,4 +91,9 @@ func elasticRegister(router *mux.Router, elastic *elasticsearch.Client) {
 	elasticEs := elastic2.New(elastic)
 	uc := elasticUseCase.New(elasticEs)
 	router.Use(elasticM.NewTrackHandler(uc).WsHandler)
+}
+func graphRegister(postgres *sql.DB) {
+	db := graphRep.New(postgres)
+	uc := graphUseCase.New(db)
+	graphH.GraphHandlers(uc)
 }
