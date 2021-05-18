@@ -40,9 +40,9 @@ type ElasticDelivery interface {
 	ElasticGet([]TrackSelect) bool
 }
 type TrackSelect struct {
-	Name   string `db:"track" json:"name"`
-	Artist string `db:"artist" json:"artist"`
-	Album  string `db:"album" json:"album"`
+	Name   string `json:"name"`
+	Artist string `json:"artist"`
+	Album  string `json:"album"`
 }
 
 type ChartSelect struct {

@@ -10,4 +10,14 @@ type Tracks{
 
 type Query {
   tracks: [Tracks!]!
+  artist(artist: String): [Tracks!]!
+}
+input NewTrack{
+  name: String!
+  artist: String!
+  album: String!
+}
+
+type Mutation {
+  createTrack(input: NewTrack!): Tracks!
 }

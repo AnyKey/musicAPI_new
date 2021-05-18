@@ -2,6 +2,12 @@
 
 package model
 
+type NewTrack struct {
+	Name   string `json:"name"`
+	Artist string `json:"artist"`
+	Album  string `json:"album"`
+}
+
 type Tracks struct {
 	Name   string `json:"name"`
 	Artist string `json:"artist"`

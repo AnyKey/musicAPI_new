@@ -18,11 +18,13 @@ func NewLogHandler(usecase logs.UseCase) *logMiddleHandler {
 
 func (lh *logMiddleHandler) LogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("token")
-		addr := r.RequestURI
-		err := lh.usecase.QueueAppend(token, addr)
-		if err != nil {
-			log.Println(err)
+		if r.Header.Get("token") != "" {
+			token := r.Header.Get("token")
+			addr := r.RequestURI
+			err := lh.usecase.QueueAppend(token, addr)
+			if err != nil {
+				log.Println(err)
+			}
 		}
 		next.ServeHTTP(w, r)
 		return
