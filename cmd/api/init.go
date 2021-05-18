@@ -2,11 +2,17 @@ package main
 
 import (
 	"database/sql"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/go-redis/redis/v8"
+	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
 	"github.com/vrischmann/envconfig"
 	"log"
+	"musicAPI/graph"
+	"musicAPI/graph/generated"
+	"musicAPI/graphexp"
 )
 
 func newConfig() config {
@@ -63,4 +69,10 @@ func failOnError(err error, msg string) {
 	if err != nil {
 		log.Printf("%s: %s", msg, err)
 	}
+}
+
+func graphQlHandler(router *mux.Router, uc graphexp.UseCase) {
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{ExpUseCase: uc}}))
+	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	router.Handle("/query", srv)
 }

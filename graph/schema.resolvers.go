@@ -5,12 +5,16 @@ package graph
 
 import (
 	"context"
-	"musicAPI/graphql/delivery/graphquery/graph/generated"
-	"musicAPI/graphql/delivery/graphquery/graph/model"
+	"musicAPI/graph/generated"
+	"musicAPI/graph/model"
 )
 
 func (r *queryResolver) Tracks(ctx context.Context) ([]*model.Tracks, error) {
-	return r.Resolver.Tracks, nil
+	result, err := r.ExpUseCase.GetTracks()
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // Query returns generated.QueryResolver implementation.

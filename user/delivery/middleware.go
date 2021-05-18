@@ -25,7 +25,7 @@ func (th *userMiddleHandler) UserMiddleware(next http.Handler) http.Handler {
 		if r.Method == http.MethodOptions {
 			return
 		}
-		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") || strings.HasPrefix(r.RequestURI, "/ws") || strings.HasPrefix(r.RequestURI, "/index") {
+		if strings.HasPrefix(r.RequestURI, "/api/refresh") || strings.HasPrefix(r.RequestURI, "/api/login") || strings.HasPrefix(r.RequestURI, "/ws") || strings.HasPrefix(r.RequestURI, "/index") || strings.HasPrefix(r.RequestURI, "/") {
 			next.ServeHTTP(w, r)
 			return
 		}

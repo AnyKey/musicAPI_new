@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"musicAPI/graphql/delivery/graphquery/graph/model"
+	"musicAPI/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -162,10 +162,7 @@ type Tracks{
 
 type Query {
   tracks: [Tracks!]!
-}
-
-
-`, BuiltIn: false},
+}`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -258,7 +255,7 @@ func (ec *executionContext) _Query_tracks(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*model.Tracks)
 	fc.Result = res
-	return ec.marshalNTracks2ᚕᚖmusicAPIᚋgraphqlᚋdeliveryᚋgraphqueryᚋgraphᚋmodelᚐTracksᚄ(ctx, field.Selections, res)
+	return ec.marshalNTracks2ᚕᚖmusicAPIᚋgraphᚋmodelᚐTracksᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1888,7 +1885,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNTracks2ᚕᚖmusicAPIᚋgraphqlᚋdeliveryᚋgraphqueryᚋgraphᚋmodelᚐTracksᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Tracks) graphql.Marshaler {
+func (ec *executionContext) marshalNTracks2ᚕᚖmusicAPIᚋgraphᚋmodelᚐTracksᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Tracks) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -1912,7 +1909,7 @@ func (ec *executionContext) marshalNTracks2ᚕᚖmusicAPIᚋgraphqlᚋdelivery�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNTracks2ᚖmusicAPIᚋgraphqlᚋdeliveryᚋgraphqueryᚋgraphᚋmodelᚐTracks(ctx, sel, v[i])
+			ret[i] = ec.marshalNTracks2ᚖmusicAPIᚋgraphᚋmodelᚐTracks(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -1925,7 +1922,7 @@ func (ec *executionContext) marshalNTracks2ᚕᚖmusicAPIᚋgraphqlᚋdelivery�
 	return ret
 }
 
-func (ec *executionContext) marshalNTracks2ᚖmusicAPIᚋgraphqlᚋdeliveryᚋgraphqueryᚋgraphᚋmodelᚐTracks(ctx context.Context, sel ast.SelectionSet, v *model.Tracks) graphql.Marshaler {
+func (ec *executionContext) marshalNTracks2ᚖmusicAPIᚋgraphᚋmodelᚐTracks(ctx context.Context, sel ast.SelectionSet, v *model.Tracks) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

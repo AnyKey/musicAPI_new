@@ -10,9 +10,8 @@ import (
 	elasticM "musicAPI/elastic/delivery"
 	elastic2 "musicAPI/elastic/delivery/elastic"
 	elasticUseCase "musicAPI/elastic/usecase"
-	graphH "musicAPI/graphql/delivery/graphquery"
-	graphRep "musicAPI/graphql/repository/postgres"
-	graphUseCase "musicAPI/graphql/usecase"
+	graphExpRep "musicAPI/graphexp/repository/postgres"
+	graphExpUC "musicAPI/graphexp/usecase"
 	logsM "musicAPI/logs/delivery"
 	"musicAPI/logs/delivery/rabbitmq"
 	logsUseCase "musicAPI/logs/usecase"
@@ -42,6 +41,9 @@ func register(router *mux.Router, conf config) {
 	redisClient := initRedis(conf.RedisPort)
 	postgres := initPostgres(conf.Database)
 
+	// graphQl
+	graphRegister(router, postgres)
+
 	// user
 	userRegister(router, redisClient)
 
@@ -54,46 +56,43 @@ func register(router *mux.Router, conf config) {
 	// es
 	elasticRegister(router, elasticClient)
 
-	// graphQl
-	graphRegister(postgres)
-
 	// other mdws
 	router.Use(mux.CORSMethodMiddleware(router))
 
 	// render
 	client.Template(router)
 }
-func userRegister(router *mux.Router, redisConn *redis.Client) {
-	userDB := redisUserRep.New(redisConn)
-	uc := userUseCase.New(userDB)
+func userRegister(router *mux.Router, redis *redis.Client) {
+	postgresRep := redisUserRep.New(redis)
+	uc := userUseCase.New(postgresRep)
 	userH.UserHandlers(router, uc)
 	router.Use(userM.NewUserHandler(uc).UserMiddleware)
 }
 func musicRegister(router *mux.Router, postgres *sql.DB, redis *redis.Client, elastic *elasticsearch.Client) {
-	musicRedis := redisMusicRep.New(redis)
-	musicDB := dbMusicRep.New(postgres)
-	musicApi := musicH.New()
-	musicElastic := elastic3.New(elastic)
+	redisRep := redisMusicRep.New(redis)
+	postgresRep := dbMusicRep.New(postgres)
+	api := musicH.New()
+	es := elastic3.New(elastic)
 	uc := musicUseCase.New(
-		musicRedis,
-		musicDB,
-		musicApi,
-		musicElastic,
+		redisRep,
+		postgresRep,
+		api,
+		es,
 	)
 	musicH.MusicHandlers(router, uc)
 }
 func logsRegister(router *mux.Router, queue *amqp.Channel) {
-	logsRab := rabbitmq.New(queue)
-	uc := logsUseCase.New(logsRab)
+	rabbit := rabbitmq.New(queue)
+	uc := logsUseCase.New(rabbit)
 	router.Use(logsM.NewLogHandler(uc).LogMiddleware)
 }
 func elasticRegister(router *mux.Router, elastic *elasticsearch.Client) {
-	elasticEs := elastic2.New(elastic)
-	uc := elasticUseCase.New(elasticEs)
+	es := elastic2.New(elastic)
+	uc := elasticUseCase.New(es)
 	router.Use(elasticM.NewTrackHandler(uc).WsHandler)
 }
-func graphRegister(postgres *sql.DB) {
-	db := graphRep.New(postgres)
-	uc := graphUseCase.New(db)
-	graphH.GraphHandlers(uc)
+func graphRegister(router *mux.Router, postgres *sql.DB) {
+	db := graphExpRep.New(postgres)
+	uc := graphExpUC.New(db)
+	graphQlHandler(router, uc)
 }
