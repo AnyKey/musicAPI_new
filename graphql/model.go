@@ -6,9 +6,7 @@ type UseCase interface {
 type Repository interface {
 	GetTracks() ([]TrackSelect, error)
 }
-type Delivery interface {
-	GetTracks([]TrackSelect) error
-}
+
 type TrackSelect struct {
 	Name   string `json:"name"`
 	Artist string `json:"artist"`
