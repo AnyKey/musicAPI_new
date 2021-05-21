@@ -28,7 +28,7 @@ func MusicHandlers(router *mux.Router, musicUC music.UseCase) {
 }
 func (mu *musicHandler) album(w http.ResponseWriter, r *http.Request) {
 
-	var ctx = context.Background()
+	ctx := context.Background()
 	vars := mux.Vars(r)
 	album, artist := vars["album"], vars["artist"]
 	result, err := mu.usecase.AlbumInfoRes(ctx, album, artist)
@@ -51,7 +51,7 @@ func (mu *musicHandler) album(w http.ResponseWriter, r *http.Request) {
 func (mu *musicHandler) chart(w http.ResponseWriter, r *http.Request) {
 
 	var err error
-	var ctx = context.Background()
+	ctx := context.Background()
 	defer func() {
 		if err != nil {
 			err = WriteJsonToResponse(w, err.Error())
@@ -61,7 +61,7 @@ func (mu *musicHandler) chart(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	vars := mux.Vars(r)
-	var sortTo = vars["sortto"]
+	sortTo := vars["sortto"]
 	chart, err := mu.usecase.ChartReq(ctx, sortTo)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -94,9 +94,9 @@ func (mu *musicHandler) artist(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	vars := mux.Vars(r)
-	var artistV = vars["artist"]
-	var ctx = context.Background()
-	tracks, err := mu.usecase.ArtistReq(ctx, artistV)
+	artist := vars["artist"]
+	ctx := context.Background()
+	tracks, err := mu.usecase.ArtistReq(ctx, artist)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -123,8 +123,8 @@ func (mu *musicHandler) genre(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 	vars := mux.Vars(r)
-	var genre = vars["genre"]
-	var ctx = context.Background()
+	genre := vars["genre"]
+	ctx := context.Background()
 	tracks, err := mu.usecase.GenreReq(ctx, genre)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -162,10 +162,10 @@ func (mu *musicHandler) track(w http.ResponseWriter, r *http.Request) {
 	}()
 	vars := mux.Vars(r)
 
-	var trackV = vars["track"]
-	var artistV = vars["artist"]
-	var ctx = context.Background()
-	tracks, value, err := mu.usecase.TrackReq(ctx, trackV, artistV)
+	track := vars["track"]
+	artist := vars["artist"]
+	ctx := context.Background()
+	tracks, value, err := mu.usecase.TrackReq(ctx, track, artist)
 	if err == nil && value == true {
 		err = WriteJsonToResponse(w, tracks)
 	}
@@ -180,11 +180,10 @@ func (mu *musicHandler) like(w http.ResponseWriter, r *http.Request) {
 			err = WriteJsonToResponse(w, err.Error())
 		}
 	}()
-
 	vars := mux.Vars(r)
 
-	var track = vars["track"]
-	var artist = vars["artist"]
+	track := vars["track"]
+	artist := vars["artist"]
 	token := r.Header.Get("token")
 	message, err := mu.usecase.SetLike(track, artist, token)
 	if err == nil {
@@ -202,11 +201,10 @@ func (mu *musicHandler) likeList(w http.ResponseWriter, r *http.Request) {
 			err = WriteJsonToResponse(w, err.Error())
 		}
 	}()
-
 	vars := mux.Vars(r)
 
-	var track = vars["track"]
-	var artist = vars["artist"]
+	track := vars["track"]
+	artist := vars["artist"]
 	token := r.Header.Get("token")
 	message, err := mu.usecase.GetLike(track, artist, token)
 	if err == nil {

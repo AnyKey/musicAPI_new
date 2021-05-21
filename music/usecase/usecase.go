@@ -17,11 +17,13 @@ type musicUseCase struct {
 	GrpcConn     music.GrpcDelivery
 }
 
-func New(musicRedisRepo music.RedisRepository,
+func New(
+	musicRedisRepo music.RedisRepository,
 	musicPostgresRepo music.PostgresRepository,
 	musicApiRepo music.ApiDelivery,
 	musicEsRepo music.ElasticDelivery,
-	musicGrpc music.GrpcDelivery) music.UseCase {
+	musicGrpc music.GrpcDelivery,
+) music.UseCase {
 	return &musicUseCase{
 		RedisRepo:    musicRedisRepo,
 		PostgresRepo: musicPostgresRepo,
@@ -185,7 +187,6 @@ func (muc *musicUseCase) SetLike(name string, artist string, token string) (*str
 	if err != nil {
 		return nil, err
 	}
-
 	return message, nil
 }
 func (muc *musicUseCase) GetLike(name string, artist string, token string) (*music.LikeList, error) {
@@ -200,7 +201,6 @@ func (muc *musicUseCase) GetLike(name string, artist string, token string) (*mus
 	if err != nil {
 		return nil, err
 	}
-
 	return message, nil
 }
 func structConv(trackList *music.OwnTrack) []music.TrackSelect {
