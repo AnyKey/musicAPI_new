@@ -4,32 +4,36 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"log"
 	"musicAPI/music"
 )
 
 type musicUseCase struct {
-	MusicRedisRepo    music.RedisRepository
-	MusicPostgresRepo music.PostgresRepository
-	MusicApiRepo      music.ApiDelivery
-	MusicEsRepo       music.ElasticDelivery
+	RedisRepo    music.RedisRepository
+	PostgresRepo music.PostgresRepository
+	ApiRepo      music.ApiDelivery
+	EsRepo       music.ElasticDelivery
+	GrpcConn     music.GrpcDelivery
 }
 
 func New(musicRedisRepo music.RedisRepository,
 	musicPostgresRepo music.PostgresRepository,
 	musicApiRepo music.ApiDelivery,
-	musicEsRepo music.ElasticDelivery) music.UseCase {
+	musicEsRepo music.ElasticDelivery,
+	musicGrpc music.GrpcDelivery) music.UseCase {
 	return &musicUseCase{
-		MusicRedisRepo:    musicRedisRepo,
-		MusicPostgresRepo: musicPostgresRepo,
-		MusicApiRepo:      musicApiRepo,
-		MusicEsRepo:       musicEsRepo,
+		RedisRepo:    musicRedisRepo,
+		PostgresRepo: musicPostgresRepo,
+		ApiRepo:      musicApiRepo,
+		EsRepo:       musicEsRepo,
+		GrpcConn:     musicGrpc,
 	}
 }
 
 func (muc *musicUseCase) AlbumInfoRes(ctx context.Context, album string, artist string) (*music.Root, error) {
 	var err error
-	result := muc.MusicRedisRepo.GetAlbumRedis(ctx, album, artist)
+	result := muc.RedisRepo.GetAlbumRedis(ctx, album, artist)
 	if result != nil {
 		return result, nil
 		if err != nil {
@@ -37,27 +41,27 @@ func (muc *musicUseCase) AlbumInfoRes(ctx context.Context, album string, artist 
 		}
 	}
 
-	re, err := muc.MusicApiRepo.AlbumInfoReq(album, artist)
+	re, err := muc.ApiRepo.AlbumInfoReq(album, artist)
 	bytes, err := json.Marshal(re)
 	if err == nil {
-		muc.MusicRedisRepo.SetAlbumRedis(ctx, album, artist, bytes)
+		muc.RedisRepo.SetAlbumRedis(ctx, album, artist, bytes)
 		return re, nil
 	}
 	return nil, err
 }
 func (muc *musicUseCase) ChartReq(ctx context.Context, sortTo string) ([]music.ChartSelect, error) {
-	chart := muc.MusicRedisRepo.GetChartRedis(ctx, sortTo)
+	chart := muc.RedisRepo.GetChartRedis(ctx, sortTo)
 	if chart != nil {
 		return chart, nil
 	}
-	chart, err := muc.MusicPostgresRepo.GetChart(sortTo)
+	chart, err := muc.PostgresRepo.GetChart(sortTo)
 	if err != nil {
 		return nil, err
 	}
 	if chart != nil {
 		bytes, err := json.Marshal(chart)
 		if err == nil {
-			muc.MusicRedisRepo.SetChartRedis(ctx, sortTo, bytes)
+			muc.RedisRepo.SetChartRedis(ctx, sortTo, bytes)
 		}
 		return chart, nil
 	}
@@ -65,11 +69,11 @@ func (muc *musicUseCase) ChartReq(ctx context.Context, sortTo string) ([]music.C
 }
 
 func (muc *musicUseCase) ArtistReq(ctx context.Context, artist string) ([]music.TrackSelect, error) {
-	tracks := muc.MusicRedisRepo.GetArtistRedis(ctx, artist)
+	tracks := muc.RedisRepo.GetArtistRedis(ctx, artist)
 	if tracks != nil {
 		return tracks, nil
 	}
-	tracks, err := muc.MusicPostgresRepo.GetArtistTracks(artist)
+	tracks, err := muc.PostgresRepo.GetArtistTracks(artist)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +83,7 @@ func (muc *musicUseCase) ArtistReq(ctx context.Context, artist string) ([]music.
 			log.Println(err)
 		}
 		if err == nil {
-			muc.MusicRedisRepo.SetArtistRedis(ctx, artist, bytes)
+			muc.RedisRepo.SetArtistRedis(ctx, artist, bytes)
 		}
 		return tracks, nil
 	}
@@ -87,11 +91,11 @@ func (muc *musicUseCase) ArtistReq(ctx context.Context, artist string) ([]music.
 }
 
 func (muc *musicUseCase) GenreReq(ctx context.Context, genre string) ([]music.TrackSelect, error) {
-	tracks := muc.MusicRedisRepo.GetGenreRedis(ctx, genre)
+	tracks := muc.RedisRepo.GetGenreRedis(ctx, genre)
 	if tracks != nil {
 		return tracks, nil
 	}
-	tracks, err := muc.MusicPostgresRepo.GetGenreTracks(genre)
+	tracks, err := muc.PostgresRepo.GetGenreTracks(genre)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +105,7 @@ func (muc *musicUseCase) GenreReq(ctx context.Context, genre string) ([]music.Tr
 			log.Println(err)
 		}
 		if err == nil {
-			muc.MusicRedisRepo.SetGenreRedis(ctx, genre, bytes)
+			muc.RedisRepo.SetGenreRedis(ctx, genre, bytes)
 		}
 		return tracks, nil
 	}
@@ -111,10 +115,10 @@ func (muc *musicUseCase) GenreReq(ctx context.Context, genre string) ([]music.Tr
 func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist string) ([]music.TrackSelect, bool, error) {
 	var value bool
 	var result []music.TrackSelect
-	tracks := muc.MusicRedisRepo.GetTracksRedis(ctx, track, artist)
+	tracks := muc.RedisRepo.GetTracksRedis(ctx, track, artist)
 	if tracks != nil {
-		if muc.MusicEsRepo.ElasticGet(tracks) != true {
-			err := muc.MusicEsRepo.ElasticAdd(tracks)
+		if muc.EsRepo.ElasticGet(tracks) != true {
+			err := muc.EsRepo.ElasticAdd(tracks)
 			if err != nil {
 				log.Println("error elastic add")
 			}
@@ -125,10 +129,10 @@ func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist stri
 		return tracks, value, nil
 	}
 
-	tracks, err := muc.MusicPostgresRepo.GetTracks(track, artist)
+	tracks, err := muc.PostgresRepo.GetTracks(track, artist)
 	bytes, err := json.Marshal(tracks)
 	if err == nil && tracks != nil {
-		muc.MusicRedisRepo.SetTracksRedis(ctx, track, artist, bytes)
+		muc.RedisRepo.SetTracksRedis(ctx, track, artist, bytes)
 		value = true
 	}
 	if tracks != nil {
@@ -140,7 +144,7 @@ func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist stri
 		}
 	}
 	if tracks == nil {
-		re, err := muc.MusicApiRepo.TrackSearchReq(track, artist)
+		re, err := muc.ApiRepo.TrackSearchReq(track, artist)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
@@ -150,7 +154,7 @@ func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist stri
 		}
 		if re != nil {
 			go func() {
-				err = muc.MusicPostgresRepo.SetTracks(*re)
+				err = muc.PostgresRepo.SetTracks(*re)
 				if err != nil {
 					fmt.Println(err.Error())
 				}
@@ -167,6 +171,37 @@ func (muc *musicUseCase) TrackReq(ctx context.Context, track string, artist stri
 		}
 	}
 	return result, value, nil
+}
+
+func (muc *musicUseCase) SetLike(name string, artist string, token string) (*string, error) {
+	check, err := muc.PostgresRepo.CheckTrack(name, artist)
+	if err != nil {
+		return nil, err
+	}
+	if !check {
+		return nil, errors.New("Track doesnt exist")
+	}
+	message, err := muc.GrpcConn.SetLike(name, artist, token)
+	if err != nil {
+		return nil, err
+	}
+
+	return message, nil
+}
+func (muc *musicUseCase) GetLike(name string, artist string, token string) (*music.LikeList, error) {
+	check, err := muc.PostgresRepo.CheckTrack(name, artist)
+	if err != nil {
+		return nil, err
+	}
+	if !check {
+		return nil, errors.New("Track doesnt exist")
+	}
+	message, err := muc.GrpcConn.GetLike(name, artist, token)
+	if err != nil {
+		return nil, err
+	}
+
+	return message, nil
 }
 func structConv(trackList *music.OwnTrack) []music.TrackSelect {
 	return []music.TrackSelect{{

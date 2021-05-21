@@ -23,6 +23,8 @@ func MusicHandlers(router *mux.Router, musicUC music.UseCase) {
 	router.HandleFunc("/api/artist/{artist}", musicH.artist).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/api/genre/{genre}", musicH.genre).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/api/track/{artist}/{track}", musicH.track).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/api/like/{artist}/{track}", musicH.like).Methods(http.MethodGet, http.MethodOptions)
+	router.HandleFunc("/api/likelist/{artist}/{track}", musicH.likeList).Methods(http.MethodGet, http.MethodOptions)
 }
 func (mu *musicHandler) album(w http.ResponseWriter, r *http.Request) {
 
@@ -166,6 +168,49 @@ func (mu *musicHandler) track(w http.ResponseWriter, r *http.Request) {
 	tracks, value, err := mu.usecase.TrackReq(ctx, trackV, artistV)
 	if err == nil && value == true {
 		err = WriteJsonToResponse(w, tracks)
+	}
+	return
+}
+func (mu *musicHandler) like(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	defer func() {
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			err = WriteJsonToResponse(w, err.Error())
+		}
+	}()
+
+	vars := mux.Vars(r)
+
+	var track = vars["track"]
+	var artist = vars["artist"]
+	token := r.Header.Get("token")
+	message, err := mu.usecase.SetLike(track, artist, token)
+	if err == nil {
+		err = WriteJsonToResponse(w, message)
+	}
+	return
+}
+
+func (mu *musicHandler) likeList(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	defer func() {
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			err = WriteJsonToResponse(w, err.Error())
+		}
+	}()
+
+	vars := mux.Vars(r)
+
+	var track = vars["track"]
+	var artist = vars["artist"]
+	token := r.Header.Get("token")
+	message, err := mu.usecase.GetLike(track, artist, token)
+	if err == nil {
+		err = WriteJsonToResponse(w, message)
 	}
 	return
 }

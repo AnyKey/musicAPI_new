@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	pb "github.com/AnyKey/userslike/grpcsrv/like"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 	"github.com/streadway/amqp"
 	"github.com/vrischmann/envconfig"
+	"google.golang.org/grpc"
 	"log"
 	"musicAPI/graph"
 	"musicAPI/graph/generated"
@@ -35,6 +37,15 @@ func initPostgres(database string) *sql.DB {
 	return db
 }
 
+func initGrpc(grpcPort string) pb.SubSrvClient {
+	conn, err := grpc.Dial(grpcPort, grpc.WithInsecure(), grpc.WithBlock())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	//	defer conn.Close()
+	c := pb.NewSubSrvClient(conn)
+	return c
+}
 func initRedis(redisPort string) *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: redisPort,

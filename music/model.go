@@ -10,6 +10,7 @@ type PostgresRepository interface {
 	GetGenreTracks(string) ([]TrackSelect, error)
 	GetArtistTracks(string) ([]TrackSelect, error)
 	GetChart(string) ([]ChartSelect, error)
+	CheckTrack(string, string) (bool, error)
 }
 
 type RedisRepository interface {
@@ -28,12 +29,18 @@ type ApiDelivery interface {
 	AlbumInfoReq(string, string) (*Root, error)
 	TrackSearchReq(string, string) (*OwnTrack, error)
 }
+type GrpcDelivery interface {
+	SetLike(string, string, string) (*string, error)
+	GetLike(string, string, string) (*LikeList, error)
+}
 type UseCase interface {
 	ArtistReq(context.Context, string) ([]TrackSelect, error)
 	GenreReq(context.Context, string) ([]TrackSelect, error)
 	AlbumInfoRes(context.Context, string, string) (*Root, error)
 	ChartReq(context.Context, string) ([]ChartSelect, error)
 	TrackReq(context.Context, string, string) ([]TrackSelect, bool, error)
+	GetLike(string, string, string) (*LikeList, error)
+	SetLike(string, string, string) (*string, error)
 }
 type ElasticDelivery interface {
 	ElasticAdd([]TrackSelect) error
@@ -101,4 +108,13 @@ type TrackAlbum struct {
 }
 type TrackRoot struct {
 	Track OwnTrack `json:"track"`
+}
+
+type LikeSelect struct {
+	Username string `json:"username"`
+}
+type LikeList struct {
+	Track  string       `json:"track"`
+	Artist string       `json:"artist"`
+	Likes  []LikeSelect "likes"
 }

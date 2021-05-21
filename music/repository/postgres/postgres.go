@@ -41,6 +41,30 @@ func (repo *Repository) GetTracks(track string, artist string) ([]music.TrackSel
 	return trackList, nil
 }
 
+func (repo *Repository) CheckTrack(track string, artist string) (bool, error) {
+
+	var trackList []music.TrackSelect
+	rows, err := repo.Conn.Query("SELECT track.name as track, artist.name as artist, album.name as album  FROM track, artist, album "+
+		"WHERE track.artist_id = artist.id and track.album_id = album.id and track.name = $1 AND artist.name = $2", track, artist)
+	if err != nil {
+		return false, errors.Wrap(err, "error select in DB!")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		tl := music.TrackSelect{}
+		err := rows.Scan(&tl.Name, &tl.Artist, &tl.Album)
+		if err != nil {
+			return false, errors.Wrap(err, "error Scan values")
+		}
+		trackList = append(trackList, tl)
+	}
+	if trackList == nil {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (repo *Repository) SetTracks(newTracks music.OwnTrack) error {
 	ctx := context.Background()
 	tx, err := repo.Conn.BeginTx(ctx, nil)

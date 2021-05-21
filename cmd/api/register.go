@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	pb "github.com/AnyKey/userslike/grpcsrv/like"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
@@ -16,6 +17,7 @@ import (
 	"musicAPI/logs/delivery/rabbitmq"
 	logsUseCase "musicAPI/logs/usecase"
 	elastic3 "musicAPI/music/delivery/elastic"
+	grpcC "musicAPI/music/delivery/grpc"
 	musicHttp "musicAPI/music/delivery/http"
 	dbMusicRep "musicAPI/music/repository/postgres"
 	redisMusicRep "musicAPI/music/repository/redis"
@@ -33,6 +35,7 @@ type config struct {
 	QueuePort   string `envconfig:"QUEUE_PORT"`
 	ElasticName string `envconfig:"ELASTIC_NAME"`
 	ElasticPass string `envconfig:"ELASTIC_PASS"`
+	GrpcPort    string `envconfig:"GRPC_PORT"`
 }
 
 func register(router *mux.Router, conf config) {
@@ -40,6 +43,7 @@ func register(router *mux.Router, conf config) {
 	elasticClient := initElasticSearch(conf.ElasticName, conf.ElasticPass)
 	redisClient := initRedis(conf.RedisPort)
 	postgres := initPostgres(conf.Database)
+	grpcConn := initGrpc(conf.GrpcPort)
 
 	// graphQl
 	graphRegister(router, postgres)
@@ -48,7 +52,7 @@ func register(router *mux.Router, conf config) {
 	userRegister(router, redisClient)
 
 	// music
-	musicRegister(router, postgres, redisClient, elasticClient)
+	musicRegister(router, postgres, redisClient, elasticClient, grpcConn)
 
 	// logs
 	logsRegister(router, queueChan)
@@ -68,16 +72,18 @@ func userRegister(router *mux.Router, redis *redis.Client) {
 	userHttp.UserHandlers(router, uc)
 	router.Use(userMdw.NewUserHandler(uc).UserMiddleware)
 }
-func musicRegister(router *mux.Router, postgres *sql.DB, redis *redis.Client, elastic *elasticsearch.Client) {
+func musicRegister(router *mux.Router, postgres *sql.DB, redis *redis.Client, elastic *elasticsearch.Client, grpcConn pb.SubSrvClient) {
 	redisRep := redisMusicRep.New(redis)
 	postgresRep := dbMusicRep.New(postgres)
 	api := musicHttp.New()
 	es := elastic3.New(elastic)
+	conn := grpcC.New(grpcConn)
 	uc := musicUseCase.New(
 		redisRep,
 		postgresRep,
 		api,
 		es,
+		conn,
 	)
 	musicHttp.MusicHandlers(router, uc)
 }
