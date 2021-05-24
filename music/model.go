@@ -114,7 +114,8 @@ type LikeSelect struct {
 	Username string `json:"username"`
 }
 type LikeList struct {
-	Track  string       `json:"track"`
-	Artist string       `json:"artist"`
-	Likes  []LikeSelect "likes"
+	Track     string       `json:"track"`
+	Artist    string       `json:"artist"`
+	LikeCount string       `json:"like_count"`
+	Likes     []LikeSelect "likes"
 }

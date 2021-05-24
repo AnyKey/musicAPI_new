@@ -50,9 +50,10 @@ func (d *Delivery) GetLike(name, artist, token string) (*music.LikeList, error) 
 		return nil, err
 	}
 	likeList := music.LikeList{
-		Track:  r.GetName(),
-		Artist: r.GetArtist(),
-		Likes:  likes,
+		Track:     r.GetName(),
+		Artist:    r.GetArtist(),
+		LikeCount: r.GetLikeCount(),
+		Likes:     likes,
 	}
 	return &likeList, nil
 }
